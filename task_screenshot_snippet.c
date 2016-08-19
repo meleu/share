@@ -1,4 +1,4 @@
-// screenshots with the ROM name
+// RetroArch screenshots with the ROM name
    if (settings->auto_screenshot_filename)
    {
       time_t cur_time;
