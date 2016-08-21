@@ -23,6 +23,7 @@ Let's take a look at the `runcommand-onend.sh`:
 
 ```sh
 #!/bin/bash
+echo "--- start of $(basename $0) ---" >&2
 
 readonly system="$1"
 readonly full_path_rom="$3"
@@ -54,30 +55,30 @@ if [[ -z "$screenshot_dir" ]]; then
     iniGet "screenshot_directory" "$retroarch_cfg"
     screenshot_dir="$ini_value"
     if [[ -z "$screenshot_dir" ]]; then
-        echo "You must set a path for 'screenshot_directory' in \"retroarch.cfg\"." 2>&1
-        echo "Aborting..." 2>&1
+        echo "You must set a path for 'screenshot_directory' in \"retroarch.cfg\"." >&2
+        echo "Aborting..." >&2
         exit 1
     fi
 fi
 
 # if there is no screenshot named "ROM Name.png", we have nothing to do here
 if ! [[ -f "$screenshot_dir/$scrap_img" ]]; then
-    echo "There is no screenshot for \"$rom\". Exiting..." 2>&1
+    echo "There is no screenshot for \"$rom\". Exiting..." >&2
     exit 0
 fi
 
 # if there is no "customized gamelist.xml", try the user specific,
 # if it fails, get the global one
 if ! [[ -f "$gamelist" ]]; then
-    echo "Copying \"$gamelist1\" to \"$gamelist\"." 2>&1
+    echo "Copying \"$gamelist1\" to \"$gamelist\"." >&2
 
     if ! cp "$gamelist1" "$gamelist" 2>/dev/null; then
-        echo "Failed to copy \"$gamelist1\"." 2>&1
-        echo "Copying \"$gamelist2\" to \"$gamelist\"." 2>&1
+        echo "Failed to copy \"$gamelist1\"." >&2
+        echo "Copying \"$gamelist2\" to \"$gamelist\"." >&2
 
         if ! cp "$gamelist2" "$gamelist" 2>/dev/null; then
-            echo "Failed to copy \"$gamelist2\"." 2>&1
-            echo "Aborting..." 2>&1
+            echo "Failed to copy \"$gamelist2\"." >&2
+            echo "Aborting..." >&2
             exit 1
         fi
     fi
@@ -89,6 +90,7 @@ old_img_regex="<image>.*$rom\(-image\)\?\....</image>"
 new_img_regex="<image>$screenshot_dir/$scrap_img</image>"
 
 sed -i "s|$old_img_regex|$new_img_regex|" "$gamelist"
+echo "--- end of $(basename $0) ---" >&2
 ```
 
 
@@ -96,7 +98,7 @@ sed -i "s|$old_img_regex|$new_img_regex|" "$gamelist"
 
 [Currently this is a kind of "proof of concept". The limitations below can be overcome if we feel that this is the way to achieve what we want.]
 
-- This method only changes the `<image>` entry of a particular game. So, if this game is NOT present in the gamelist.xml, nothing happens. [TODO: overcome this limitation using the sselph scraper with `-append=true` option (but before decide if the scraper will be really called by `runcommand-onend.sh`).]
+- This method only changes the `<image>` entry of a particular game. So, if this game is NOT present in the gamelist.xml, nothing happens. [TODO: learn how to use the sselph scraper with `-append=true` option.]
 - The `<image></image>` entry in the `gamelist.xml` must be in a single line (it seems to be the default, so probably we don't have to worry about it).
 - The original image filename in the `<image>` entry **must** be named as `ROM Name.ext` or `ROM Name-image.ext` (`ext` can be any 3 characters, eg: png, bmp, jpg, etc), otherwise the `sed` command won't replace it.
 - After a succeeded image changing, the respective `<image>` entry will have a full path to the image. It can be an inconvenience if the user wants to copy the gamelist.xml between computers (IMHO it's not so important. Besides that it probably won't be a problem to those who use the `pi` user).
@@ -111,4 +113,4 @@ Restart emulationstation and you'll get back your old scrapes.
 
 ## where to go from here?
 
-After I do some tests with scraper `-append=true` option and if it proves to be good enough, we can evolve it to what I think would be a cool feature: scrape with screenshots only the games that aren't scraped. In other words: when this feature is on, if the user is playing a non-scraped game and takes screenshots, then scrape this game with the most recent taken screenshot.
+After learn how to use the scraper with `-append=true` option (no success on my first tests) and if it proves to be good enough, we can evolve it to what I think would be a cool feature: scrape with screenshots only the games that aren't scraped. In other words: if the user is playing a non-scraped game and takes screenshots, then scrape this game with the most recent taken screenshot.
