@@ -65,5 +65,23 @@ fi
 old_img_regex="<image>.*$rom\(-image\)\?\....</image>"
 new_img_regex="<image>$screenshot_dir/$scrap_img</image>"
 
-sed -i "s|$old_img_regex|$new_img_regex|" "$gamelist"
+if grep -q "$old_img_regex" "$gamelist"; then
+    sed -i "s|$old_img_regex|$new_img_regex|" "$gamelist"
+
+else # oh! there is no entry for this game yet!
+    gamelist_entry="\\
+    <game id=\"\" source=\"\">\\
+        <path>$full_path_rom</path> \\
+        <name>$rom</name> \\
+        <desc></desc> \\
+        $new_img_regex \\
+        <releasedate></releasedate> \\
+        <developer></developer> \\
+        <publisher></publisher> \\
+        <genre></genre> \\
+    </game>"
+
+    sed -i "/<\/gameList>/ s|.*|${gamelist_entry}\n&|" "$gamelist"
+fi
+
 echo "--- end of $(basename $0) ---" >&2
