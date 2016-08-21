@@ -1,4 +1,6 @@
 #!/bin/bash
+# this script is intended to be the RetroPie's runcommand-onend.sh
+# please, rename it to /opt/retropie/configs/all/runcommand-onend.sh
 echo "--- start of $(basename $0) ---" >&2
 
 readonly system="$1"
