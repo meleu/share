@@ -14,6 +14,8 @@ function echo_xml_safe() {
     echo "$output"
 }
 
+# TODO: comparar com
+# echo $(sed 's#[][$.*/\^]#\\&#g' <<< "$@")
 function echo_regex_safe() {
     echo "$(
         sed '
