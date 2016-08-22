@@ -12,7 +12,7 @@ A few disclaimers first:
 
 - This only works with retroarch emulators
 
-- Before using this method you have to [scrape your ROMs](https://github.com/RetroPie/RetroPie-Setup/wiki/scraper). It was not made to start a `gamelist.xml` file from scratch. (About backups again: it will create a copy of your already filled system's `gamelist.xml` and then edit the copied version, so there's no need to backup the original `gamelist.xml` files.)
+- Before using this method you have to [scrape your ROMs](https://github.com/RetroPie/RetroPie-Setup/wiki/scraper). It was not made to start a `gamelist.xml` file from scratch. (About backups again: it will create a copy of your already filled system's `gamelist.xml` and then edit the copied version, so **there's no need to backup the original `gamelist.xml` files**.)
 
 
 ## What exactly this method do
