@@ -102,7 +102,7 @@ So in game when I want to take a screenshot I hold select (or rather the back bu
 The files with the emulationstation configs are read when it is launching, so you have to restart emulationstation. If all went according to plan, your screenshots will be the game images! TADA!
 
 
-## "I didn't like how it looks! I want my old scrapes back!"
+## "I didn't like how it looks! I want my old images back!"
 
 Easy, only two steps:
 
