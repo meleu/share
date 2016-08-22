@@ -18,11 +18,6 @@
 # The screenshot directory must exist, otherwise the RetroArch won't be able
 # to save the screenshots.
 
-
-# change the flag below to '1' if you want to scrape your screenshots only
-# for the games that are NOT in the gamelist.xml
-only_new_entries=1
-
 echo "--- start of $(basename $0) ---" >&2
 
 # variables ##################################################################
@@ -137,10 +132,6 @@ new_img_regex="<image>$xscreenshot_dir/$ximage</image>"
 
 # if there is an entry, update the <image> entry
 if grep -q "$old_img_regex" "$gamelist"; then
-    if [[ $only_new_entries -eq 1 ]]; then
-        echo "\"$rom\" is already present in \"$gamelist\". Exiting..." >&2
-        exit 0
-    fi
     new_img_regex="$(echo_regex_safe "$new_img_regex")"
     sed -i "s|$old_img_regex|$new_img_regex|" "$gamelist"
 
