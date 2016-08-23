@@ -58,22 +58,17 @@ The `runcommand-onstart.sh` script is executed (if exists) before the game start
 
 Here we have two methods to scrape your own screenshots:
 
-**[Method 1](#method-1)**: uses the `runcommand-onstart.sh` to automatically set some screenshot related configs in system specifics `retroarch.cfg` files. And after you take some screenshots from differente games, you use the SSelph scraper to create a `gamelist.xml` with your screenshots.
+**[Method 1](#method-1)**: uses the `runcommand-onstart.sh` to automatically set some screenshot related configs in system specifics `retroarch.cfg` files. And after you take some screenshots from the games, you use the SSelph scraper to create a `gamelist.xml` with your screenshots.
 
 **[Method 2](#method-2)**: uses the `runcommand-onend.sh` to automatically set the most recent screenshot from a game to be the emulationstation image for the respective game.
 
 The main difference between them is:
 
-- [Method 1](#method-1): automates the `retroarch.cfg` configs but the scraping process is done manually.
+- [Method 1](#method-1): automates the `retroarch.cfg` configs but you have to use SSelph scraper tool from command line every time you want to update the `gamelist.xml` with your screenshots.
 
 - [Method 2](#method-2): `retroarch.cfg` configs are done manually but automates the placement of your screenshots as the respective emulationstation game images.
 
 Now you have to choose which method you want to follow (or read about both): [Method 1](#method-1) or [Method 2](#method-2).
-
-
-
-
-
 
 
 ## method 1
