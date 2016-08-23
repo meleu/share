@@ -8,7 +8,7 @@ A few disclaimers first:
 
 - **MAKE A BACKUP AND USE AT YOUR OWN RISK!**
 
-- You need to have an updated version of RetroPie-Setup scripts (version 4+) ([updating instructions here](https://retropie.org.uk/download/)).
+- You need to have an updated version of RetroPie-Setup scripts (version 4+) ([updating instructions here](https://github.com/RetroPie/RetroPie-Setup/wiki/Updating-RetroPie)).
 
 - You can only create one screenshot per game
 
