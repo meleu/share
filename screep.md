@@ -71,7 +71,7 @@ The main difference between them is:
 Now you have to choose which method you want to follow (or read about both): [Method 1](#method-1) or [Method 2](#method-2).
 
 
-## method 1
+## METHOD 1
 
 ### runcommand-onstart.sh
 You need to create a file called `runcommand-onstart.sh` in the folder `/opt/retropie/configs/all/`
@@ -168,7 +168,7 @@ then we would take our screenshots and use sselphs scraper to generate our gamel
 
 
 
-## method 2
+## METHOD 2
 
 **First step**: [scrape your ROMs](https://github.com/RetroPie/RetroPie-Setup/wiki/scraper). This method was not made to start a `gamelist.xml` file from scratch. It creates a copy of your already filled system's `gamelist.xml` and then edit the copied version (so **there's no need to backup the original `gamelist.xml` files**.)
 
