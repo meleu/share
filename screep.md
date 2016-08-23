@@ -168,24 +168,77 @@ then we would take our screenshots and use sselphs scraper to generate our gamel
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 ## method 2
 
-blebleble
+**First step**: [scrape your ROMs](https://github.com/RetroPie/RetroPie-Setup/wiki/scraper). This method was not made to start a `gamelist.xml` file from scratch. It creates a copy of your already filled system's `gamelist.xml` and then edit the copied version (so **there's no need to backup the original `gamelist.xml` files**.)
 
 
+## What exactly this method do
+
+If you take a screenshot during a gaming session, the most recent screenshot will be the emulationstation image for this game. This task is done by a `runcommand-onend.sh` script.
+
+Obviously, there are some conditions to make it happen, in order to let the user easily turn on/off this functionality.
 
 
+### retroarch.cfg
 
+There are two conditions related to RetroArch configuration in order to make it works: 
+
+- `auto_screenshot_filename = "false"`
+- `screenshot_directory = "/some/path/to/screenshots"`
+
+The `auto_screenshot_filename = "false"` means that your screenshots will **NOT** be named automatically, they will always be named as `ROM file name.png`. Therefore your most recent screenshot will always overwrite the previous one.
+
+Remember this to avoid confusion: `auto_screenshot_filename = false` means ON for this "scrape screenshots" method. If `auto_screenshot_filename` is true (or absent), it means OFF.
+
+The directory assigned to `screenshot_directory` **MUST** exist, otherwise RetroArch won't be able to save the screenshots.
+
+Those options can be set in global or system specific `retroarch.cfg`.
+
+#### global config (easy way)
+
+Edit your `/opt/retropie/configs/all/retroarch.cfg` and put the option `auto_screenshot_filename = "false"`. This option isn't present in the default `retroarch.cfg`, so put it in the beggining of the file is good idea (easy to edit it later).
+
+And then put another line to the option `screenshot_directory = "/path/to/screenshots"` (I use `/home/pi/screenshots`, but you can set any other valid path). Remember: the directory **MUST** exist, otherwise RetroArch won't be able to save the screenshots.
+
+#### system specific config
+
+If you are happy with the global config, you can jump to the next section. If you want system specific customizations, go on with the reading.
+
+Edit your `/opt/retropie/configs/SYSTEM_NAME/retroarch.cfg` (replace SYSTEM_NAME with the obvious) and configure it like in the global config above.
+
+The system specific configs take precedence over the global ones. So if you want to explicitly turn on/off this functionality for a specific system, you can set `auto_screenshot_filename` to `false` or `true`, respectively. Note that you have to explicitly set it to `true` to turn off the scrape screenshots for a specific system. If it is absent, the script will look for this config in the global `retroarch.cfg`.
+
+If you want to use system specific folders for screenshots, set the `screenshot_directory` option in the system specific `retroarch.cfg`. If it is absent, the script will look for this config in the global file.
+
+### runcommand-onend.sh
+
+Here we will add a script to be executed when the game ends. If you took a screenshot in a gaming session, the script will automatically set the most recent screenshot as the emulationstation image for the game you've just played.
+
+Get the script that makes it happen here: https://raw.githubusercontent.com/meleu/src/master/screeper.sh
+
+From the command line:
+
+```
+wget https://raw.githubusercontent.com/meleu/src/master/screeper.sh
+mv screeper.sh /opt/retropie/configs/all/runcommand-onend.sh
+```
+
+(If you are a shell script guy, maybe you like to read the code. It's well commented.)
+
+Now you can play your game and take your screenshots. The most recent screenshot will be put in your screenshots folder and will be the emulationstation image for this game.
+
+
+### Restart emulationstation
+
+You have to restart emulationstation in order to see the changes. If all went according to plan, your screenshots will be the game images!
+
+
+## "I didn't like how it looks! I want my old images back and disable this stuff!"
+
+Easy, only two steps:
+
+1. Change the `auto_screenshot_filename` to true in `retroarch.cfg` (the `runcommand-onend.sh` will do nothing if this option is true).
+2. Delete the system specific `gamelist.xml` that is at the system roms directory (example for SNES: `~/RetroPie/roms/snes/gamelist.xml`). It makes the emulationstation get the configs from the original `gamelist.xml` (more details on how gamelists works [here](https://github.com/RetroPie/EmulationStation/blob/master/GAMELISTS.md)).
+
+Restart emulationstation and done!, you have your old scrapes back!
