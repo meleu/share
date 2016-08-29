@@ -70,6 +70,8 @@ function get_configs() {
             exit 1
         fi
     fi
+    # dealing with the tilde '~'
+    screenshot_dir="${screenshot_dir/#~/$HOME}"
 
     # if there is no "customized gamelist.xml", copy the user specific,
     # if it fails, copy the global one
@@ -115,6 +117,7 @@ get_configs
 # if there is no screenshot named "ROM Name.png", we have nothing to do here
 if ! [[ -f "$screenshot_dir/$image" ]]; then
     echo "There is no screenshot for \"$rom\" in the \"$screenshot_dir\" folder." >&2
+    echo "\"$screenshot_dir/$image\" not found!" >&2
     echo "Exiting..." >&2
     exit 0
 fi
