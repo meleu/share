@@ -17,6 +17,15 @@
 #
 # The screenshot directory must exist, otherwise the RetroArch won't be able
 # to save the screenshots.
+#
+# TODO: 
+# 1. if the game is an arcade game and has no entry in gamelist.xml, create
+#    an entry with no <game> field. It'll make the ES use the game name rather
+#    than rom name.
+# 2. find another way to detect an existing game in gamelist.xml, instead of
+#    looking for <image> field. The gamelist.xml can have entries with no
+#    <image> field.
+# 3. deal with an "empty" gamelist.xml. In other words: <gameList />
 
 echo "--- start of $(basename $0) ---" >&2
 
@@ -133,17 +142,26 @@ xscreenshot_dir="$(echo_xml_safe $screenshot_dir)"
 old_img_regex="<image>.*$(echo_regex_safe "$xrom")\(-image\)\?\....</image>"
 new_img_regex="<image>$xscreenshot_dir/$ximage</image>"
 
+# TODO: find another way to detect a game entry.
 # if there is an entry, update the <image> entry
 if grep -q "$old_img_regex" "$gamelist"; then
     new_img_regex="$(echo_regex_safe "$new_img_regex")"
     sed -i "s|$old_img_regex|$new_img_regex|" "$gamelist"
 
 else
+    # No <name> field when system is arcade, fba, mame-*, neogeo. It'll
+    # make the ES get the real game name from its own code (MameNameMap.cpp).
+    if [[ "$system" =~ ^(mame-.*|fba|arcade|neogeo)$ ]]; then
+        game_name=
+    else
+        game_name="<name>$xrom</name>"
+    fi
+
     # there is no entry for this game yet, let's create it
     gamelist_entry="
     <game id=\"\" source=\"\">
         <path>$xfull_path_rom</path>
-        <name>$xrom</name>
+        $game_name
         <desc></desc>
         $new_img_regex
         <releasedate></releasedate>
