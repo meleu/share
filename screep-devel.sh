@@ -19,13 +19,16 @@
 # to save the screenshots.
 #
 # TODO: 
-# 1. if the game is an arcade game and has no entry in gamelist.xml, create
+# 1. [DONE]
+#    if the game is an arcade game and has no entry in gamelist.xml, create
 #    an entry with no <game> field. It'll make the ES use the game name rather
 #    than rom name.
-# 2. find another way to detect an existing game in gamelist.xml, instead of
+# 2. [DONE]
+#    find another way to detect an existing game in gamelist.xml, instead of
 #    looking for <image> field. The gamelist.xml can have entries with no
 #    <image> field.
-# 3. deal with an "empty" gamelist.xml. In other words: <gameList />
+# 3. [DONE]
+#    deal with an "empty" gamelist.xml. In other words: <gameList />
 
 echo "--- start of $(basename $0) ---" >&2
 
@@ -83,7 +86,7 @@ function get_configs() {
     screenshot_dir="${screenshot_dir/#~/$HOME}"
 
     # if there is no "customized gamelist.xml", copy the user specific,
-    # if it fails, copy the global one
+    # if it fails, copy the global one, if it fails, create one from scratch
     if ! [[ -f "$gamelist" ]]; then
         echo "Copying \"$gamelist_user\" to \"$gamelist\"." >&2
     
@@ -93,8 +96,12 @@ function get_configs() {
     
             if ! cp "$gamelist_global" "$gamelist" 2>/dev/null; then
                 echo "Failed to copy \"$gamelist_global\"." >&2
-                echo "Aborting..." >&2
-                exit 1
+                echo "Creating a new \"$gamelist\" from scratch." >&2
+                # create a gamelist.xml from scratch
+                echo '
+<?xml version="1.0"?>
+<gameList>
+</gameList>' > "$gamelist"
             fi
         fi
     fi
@@ -163,6 +170,9 @@ if grep -q "$rom_regex" "$gamelist"; then
 
 # this rom is not present in gamelist.xml
 else
+    # some gamelist.xml with no entries has just one line with "<gameList />"
+    sed -i '/<gameList \/>/ s|.*|<gameList>\n<\/gameList>|' "$gamelist"
+
     # No <name> field when system is arcade, fba, mame-*, neogeo. It'll
     # make the ES get the real game name from its own code (MameNameMap.cpp).
     if [[ "$system" =~ ^(mame-.*|fba|arcade|neogeo)$ ]]; then
