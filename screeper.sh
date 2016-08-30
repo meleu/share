@@ -17,18 +17,6 @@
 #
 # The screenshot directory must exist, otherwise the RetroArch won't be able
 # to save the screenshots.
-#
-# TODO: 
-# 1. [DONE]
-#    if the game is an arcade game and has no entry in gamelist.xml, create
-#    an entry with no <game> field. It'll make the ES use the game name rather
-#    than rom name.
-# 2. [DONE]
-#    find another way to detect an existing game in gamelist.xml, instead of
-#    looking for <image> field. The gamelist.xml can have entries with no
-#    <image> field.
-# 3. [DONE]
-#    deal with an "empty" gamelist.xml. In other words: <gameList />
 
 echo "--- start of $(basename $0) ---" >&2
 
