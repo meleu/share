@@ -17,11 +17,15 @@
 #
 # The screenshot directory must exist, otherwise the RetroArch won't be able
 # to save the screenshots.
-
-
-# change the flag below to '1' if you want to scrape your screenshots only
-# for the games that are NOT in the gamelist.xml
-only_new_entries=1
+#
+# TODO: 
+# 1. if the game is an arcade game and has no entry in gamelist.xml, create
+#    an entry with no <game> field. It'll make the ES use the game name rather
+#    than rom name.
+# 2. find another way to detect an existing game in gamelist.xml, instead of
+#    looking for <image> field. The gamelist.xml can have entries with no
+#    <image> field.
+# 3. deal with an "empty" gamelist.xml. In other words: <gameList />
 
 echo "--- start of $(basename $0) ---" >&2
 
@@ -34,8 +38,8 @@ readonly gamelist="$HOME/RetroPie/roms/$system/gamelist.xml"
 readonly gamelist_user="$HOME/.emulationstation/gamelists/$system/gamelist.xml"
 readonly gamelist_global="/etc/emulationstation/gamelists/$system/gamelist.xml"
 
-rom="${full_path_rom##*/}"
-rom="${rom%.*}"
+rom_file="${full_path_rom##*/}"
+rom="${rom_file%.*}"
 image="$rom.png"
 
 source "/opt/retropie/lib/inifuncs.sh"
@@ -75,6 +79,8 @@ function get_configs() {
             exit 1
         fi
     fi
+    # dealing with the tilde '~'
+    screenshot_dir="${screenshot_dir/#~/$HOME}"
 
     # if there is no "customized gamelist.xml", copy the user specific,
     # if it fails, copy the global one
@@ -120,36 +126,56 @@ get_configs
 # if there is no screenshot named "ROM Name.png", we have nothing to do here
 if ! [[ -f "$screenshot_dir/$image" ]]; then
     echo "There is no screenshot for \"$rom\" in the \"$screenshot_dir\" folder." >&2
+    echo "\"$screenshot_dir/$image\" not found!" >&2
     echo "Exiting..." >&2
     exit 0
 fi
 
 # now we must the XML-safe versions of some variables
 xfull_path_rom="$(echo_xml_safe "$full_path_rom")"
+xrom_file="$(echo_xml_safe "$rom_file")"
 xrom="$(echo_xml_safe "$rom")"
 ximage="$(echo_xml_safe "$image")"
 xscreenshot_dir="$(echo_xml_safe $screenshot_dir)"
 
-# the <image> entry MUST be on a single line and match the pattern:
-# anything followed by rom name followed or not by "-image" followed by dot followed by 3 chars
-old_img_regex="<image>.*$(echo_regex_safe "$xrom")\(-image\)\?\....</image>"
+# regex to detect if the gamelist.xml has an entry for this rom:
+rom_regex="<path>.*$(echo_regex_safe "$xrom_file")<\/path>"
+
+# new <image> field
 new_img_regex="<image>$xscreenshot_dir/$ximage</image>"
 
-# if there is an entry, update the <image> entry
-if grep -q "$old_img_regex" "$gamelist"; then
-    if [[ $only_new_entries -eq 1 ]]; then
-        echo "\"$rom\" is already present in \"$gamelist\". Exiting..." >&2
-        exit 0
-    fi
+# if this rom present in gamelist.xml
+if grep -q "$rom_regex" "$gamelist"; then
     new_img_regex="$(echo_regex_safe "$new_img_regex")"
-    sed -i "s|$old_img_regex|$new_img_regex|" "$gamelist"
 
+    # check if this rom entry has an <image> field
+    if sed "/$rom_regex/,/<\/game>/!d" "$gamelist" | grep -q "<image>" ; then
+        # the <image> entry MUST be on a single line and match the pattern:
+        # anything followed by rom name followed or not by "-image" followed
+        # by dot followed by 3 chars
+        old_img_regex="<image>.*$(echo_regex_safe "$xrom")\(-image\)\?\....</image>"
+        sed -i "s|$old_img_regex|$new_img_regex|" "$gamelist"
+
+    # this rom is present in gamelist.xml but has no <image> field
+    else
+        sed -i "/$rom_regex/ s|.*|&\n\t\t${new_img_regex}|" "$gamelist"
+    fi
+
+# this rom is not present in gamelist.xml
 else
+    # No <name> field when system is arcade, fba, mame-*, neogeo. It'll
+    # make the ES get the real game name from its own code (MameNameMap.cpp).
+    if [[ "$system" =~ ^(mame-.*|fba|arcade|neogeo)$ ]]; then
+        game_name=
+    else
+        game_name="<name>$xrom</name>"
+    fi
+
     # there is no entry for this game yet, let's create it
     gamelist_entry="
-    <game id=\"\" source=\"\">
+    <game>
         <path>$xfull_path_rom</path>
-        <name>$xrom</name>
+        $game_name
         <desc></desc>
         $new_img_regex
         <releasedate></releasedate>
