@@ -9,7 +9,7 @@ Some points:
 
 If there is no "launching" image, the traditional dialog will be used.
 
-My inspiration was the @rookervik [forum post here](https://retropie.org.uk/forum/topic/3262/loading-a-custom-image-on-the-run-command). I tested with some cool launching images @lilbud made and put [here in the forum](https://retropie.org.uk/forum/topic/36/splashscreens/97).
+My inspiration was the @rookervik [forum post here](https://retropie.org.uk/forum/topic/3262/loading-a-custom-image-on-the-run-command) and I tested with some cool launching images @lilbud made and put [here in the forum](https://retropie.org.uk/forum/topic/36/splashscreens/97).
 
 ```sh
 # checking for a custom "launching" images
