@@ -4,7 +4,7 @@ The image will be used rather than the dialog if, and only if, there is a file n
 
 My inspiration was the @rookervik [forum post here](https://retropie.org.uk/forum/topic/3262/loading-a-custom-image-on-the-run-command). I tested with some cool launching images @lilbud made and put [here in the forum](https://retropie.org.uk/forum/topic/36/splashscreens/97).
 
-```
+```sh
 # checking for a custom "launching" images
 for path in "$configdir/$system" "$configdir/all" ; do
     if [[ -f "$path/launching.jpg" ]]; then
