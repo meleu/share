@@ -1,6 +1,8 @@
 This is my tweak to display a custom "launching" image instead of the traditional runcommand dialog.
 
-The intention is to use an image rather than the dialog only if the original conditions to show the dialog are satisfied **AND** there is a file named "launching.jpg" (or .png) in `$configdir/$system` or `$configdir/all` directory (`$system` takes precedence). Therefore:
+The intention is to use an image rather than the dialog only if the original conditions to show the dialog are satisfied **AND** there is a file named "launching.jpg" (or .png) in `$configdir/$system` or `$configdir/all` directory (`$system` takes precedence).
+
+Some points:
 - it by no means changes the functionality of the runcommand configs (launch menu, launch menu art, and launch menu joystick control).
 - Keep the capability to access the runcommand menu while launching a game ("press a button to config").
 - The launching image can be system specific (in `$configdir/$system/`) or a more general one (in `$configdir/all/`).
