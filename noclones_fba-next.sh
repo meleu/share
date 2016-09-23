@@ -1,5 +1,5 @@
 #!/bin/bash
-# noclones_lr-fba-next.sh
+# noclones_fba-next.sh
 #########################
 #
 # This script was made to get, **from your existent romset**, only the ROMs
