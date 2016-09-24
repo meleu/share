@@ -43,7 +43,7 @@ for dir in "$romset_dir" "$noclone_romset_dir"; do
 done
 
 # get the game list from the libretro-fba repository
-if ! [[ -f "$gamelist" ]]; then
+if ! [[ -s "$gamelist" ]]; then
     if ! wget -O "$gamelist" "$gamelist_url"; then
         echo "failed to get the remote gamelist.txt" >&2
         exit 1
