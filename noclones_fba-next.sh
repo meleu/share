@@ -87,7 +87,7 @@ while read -r line; do
 
     # create a list of the roms that we want and exist in the original romset
     if [[ -f "$romset_dir/$rom" ]]; then
-        echo "\"$romset_dir/$rom\"" >> "$noclone_list"
+        echo "$romset_dir/$rom" >> "$noclone_list"
     fi
 done < "$gamelist"
 
