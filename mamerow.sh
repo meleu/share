@@ -5,8 +5,6 @@
 # Show info about the ROM from MAME ROW gamelist.
 #
 
-set -o nounset                              # Treat unset variables as an error
-
 readonly gamelist=mamerow_gamelist.txt
 
 USAGE="
