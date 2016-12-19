@@ -32,13 +32,16 @@ for number in $@; do
     year=$(     echo "$rom_info" | cut -d\; -f10)
     rom_file=$( echo "$rom_info" | cut -d\; -f1 )
     bios=$(     echo "$rom_info" | cut -d\; -f7 )
+    sample=$(   echo "$rom_info" | cut -d\; -f8 )
 
     echo "
 $number
 **Game Name:** $game_name
 **Company:** $company
 **Year:** $year
-**ROM file name: ${rom_file}.zip
-**BIOS:** ${bios:--}
-"
+**ROM file name:** ${rom_file}.zip"
+
+    [[ -n "$bios"   ]] && echo "**BIOS:** $bios"
+    [[ -n "$sample" ]] && echo "**Sample:** $sample"
+    echo
 done
