@@ -20,9 +20,11 @@ configs_path="/opt/retropie/configs"
 carbon_path="/etc/emulationstation/themes/carbon/"
 carbon_bg="${carbon_path}/art/carbon_fiber.png"
 carbon_font="${carbon_path}/art/Cabin-Bold.ttf"
+convert_cmd=(convert -background none -resize "x235>" -resize "600x>")
 
 installed_systems="$(ls -1 $configs_path)"
 installed_systems="${installed_systems/all/}"
+failed=()
 
 # checking if we have the imagemagic installed
 if ! which convert > /dev/null; then
@@ -34,18 +36,24 @@ fi
 # We will create launching screens only for the installed systems
 for system in $installed_systems; do
     launching_image="${configs_path}/${system}/launching.png"
+    svg_file="${carbon_path}/${system}/art/system.svg"
 
-    echo "converting the svg file to png for the \"$system\" system..."
+    if ! [[ -f "$svg_file" ]]; then
+        failed+=($system)
+        continue
+    fi
 
-    # due to color problems, we use system3.png for gameandwatch and
-    # system2.png for steam
+    echo "Converting the svg file to png for the \"$system\" system..."
+
+    # due to color problems, we use system3.png for gameandwatch
+    # and system2.png for steam
     # TODO: deal with the gamecube also...
     if [[ "$system" != "gameandwatch" && "$system" != "steam" ]]; then
-        convert -background none -resize "x235>" -resize "600x>" "${carbon_path}/${system}/art/system.svg" /tmp/system.png
+        ${convert_cmd[@]} "$svg_file" /tmp/system.png
     elif [[ "$system" = "gameandwatch" ]]; then
-        convert -background none -resize "x235>" -resize "600x>" "${carbon_path}/${system}/art/system3.svg" /tmp/system.png
+        ${convert_cmd[@]} "${carbon_path}/${system}/art/system3.svg" /tmp/system.png
     elif [[ "$system" = "steam" ]]; then
-        convert -background none -resize "x235>" -resize "600x>" "${carbon_path}/${system}/art/system2.svg" /tmp/system.png
+        ${convert_cmd[@]} "${carbon_path}/${system}/art/system2.svg" /tmp/system.png
     fi
 
     if ! [[ -f /tmp/system.png ]]; then
@@ -55,22 +63,36 @@ for system in $installed_systems; do
     fi
 
     echo "Creating the launching image for the \"$system\" system."
-    convert -size 800x600 tile:"$carbon_bg" -gravity center /tmp/system.png -composite "$launching_image"
 
-    if [[ -f "$launching_image" ]]; then
-        convert "$launching_image" -gravity center -font "$carbon_font" -weight 700 -pointsize 24 -fill white -annotate +0+170 "NOW LOADING" "$launching_image"
-    fi
-
-    if [[ -f "$launching_image" ]]; then
-        convert "$launching_image" -gravity center -font "$carbon_font" -weight 700 -pointsize 14 -fill gray -annotate +0+230 "PRESS A BUTTON TO CONFIGURE\nLAUNCH OPTIONS" "$launching_image"
-    fi
-
-    if [[ -f "$launching_image" ]]; then
-        convert "$launching_image" -quality 80 "$launching_image"
-    fi
-
-    echo "File \"$launching_image\" created with success!"
+    # the convert commands are nested to ensure that everything ran fine
+    convert \
+      -size 800x600 tile:"$carbon_bg" \
+      -gravity center /tmp/system.png \
+      -composite "$launching_image" \
+    && convert "$launching_image" \
+      -gravity center \
+      -font "$carbon_font" \
+      -weight 700 \
+      -pointsize 24 \
+      -fill white \
+      -annotate +0+170 "NOW LOADING" \
+      "$launching_image" \
+    && convert "$launching_image" \
+      -gravity center \
+      -font "$carbon_font" \
+      -weight 700 \
+      -pointsize 14 \
+      -fill gray \
+      -annotate +0+230 "PRESS A BUTTON TO CONFIGURE\nLAUNCH OPTIONS" \
+      "$launching_image" \
+    && convert "$launching_image" -quality 80 "$launching_image" \
+    && echo "File \"$launching_image\" created with success!" \
+    || failed+=($system)
     echo
 done
 
-rm /tmp/system.png
+rm -f /tmp/system.png
+
+if [[ -n "$failed" ]]; then
+    echo "Failed to create images for the following systems: ${failed[@]}"
+fi
