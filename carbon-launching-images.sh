@@ -41,11 +41,11 @@ for system in $installed_systems; do
     # system2.png for steam
     # TODO: deal with the gamecube also...
     if [[ "$system" != "gameandwatch" && "$system" != "steam" ]]; then
-        convert -resize "x235>" -resize "600x>" "${carbon_path}/${system}/art/system.svg" /tmp/system.png
+        convert -background none -resize "x235>" -resize "600x>" "${carbon_path}/${system}/art/system.svg" /tmp/system.png
     elif [[ "$system" = "gameandwatch" ]]; then
-        convert -resize "x235>" -resize "600x>" "${carbon_path}/${system}/art/system3.svg" /tmp/system.png
+        convert -background none -resize "x235>" -resize "600x>" "${carbon_path}/${system}/art/system3.svg" /tmp/system.png
     elif [[ "$system" = "steam" ]]; then
-        convert -resize "x235>" -resize "600x>" "${carbon_path}/${system}/art/system2.svg" /tmp/system.png
+        convert -background none -resize "x235>" -resize "600x>" "${carbon_path}/${system}/art/system2.svg" /tmp/system.png
     fi
 
     if ! [[ -f /tmp/system.png ]]; then
