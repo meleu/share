@@ -30,6 +30,7 @@ failed=()
 if ! which convert > /dev/null; then
     echo "ERROR: The imagemagick package isn't installed!"
     echo "Please install it with 'sudo apt-get install imagemagick'."
+    exit 1
 fi
 
 
