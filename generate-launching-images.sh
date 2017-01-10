@@ -1,0 +1,320 @@
+# generate-launching-images.sh
+############################
+#
+# This script creates launching images for a specific theme.
+# If you don't know what it is, take a look at these links:
+# - https://github.com/retropie/retropie-setup/wiki/runcommand#adding-custom-launching-images
+# - https://retropie.org.uk/forum/topic/4611/runcommand-system-splashscreens
+#
+# Requirements:
+# - RetroPie 4.0.3+
+# - the theme installed (it's the default theme on RetroPie)
+# - the imagemagick package installed (it means 26.1 MB of disk space used).
+#
+# TODO: 
+# - polish the code
+# - use trap to delete the /tmp files
+# - add option to apply color to the logo
+# - add option to apply color to the background
+# - add option to use a solid color as a background
+# - add an option to put a color belt as the logo background
+# - add an option to change the text color. Color to make available:
+#   black white gray gray10 gray25 gray50 gray75 gray90
+#   pink red orange yellow green silver blue cyan purple brown
+
+# globals ###################################################################
+readonly ES_DIR="/etc/emulationstation"
+readonly CONFIGS="/opt/retropie/configs"
+readonly TMP_LOGO="/tmp/system_logo.png"
+readonly TMP_LAUNCHING="/tmp/launching.png"
+
+theme=
+theme_dir=
+system=
+failed=()
+background=
+tile_flag=
+logo=
+font=
+loading_text_color="white"
+press_a_button_text_color="gray50"
+
+
+# functions #################################################################
+
+function usage() {
+    echo
+    echo "USAGE: $(basename $0) theme-name"
+    echo
+    echo "Available themes on your system:"
+    ls "$ES_DIR/themes"
+}
+
+
+
+function check_dep() {
+    # checking if we have the imagemagick installed
+    if ! which convert > /dev/null; then
+        echo "ERROR: The imagemagick package isn't installed!"
+        echo "Please install it with 'sudo apt-get install imagemagick'."
+        exit 1
+    fi
+
+    # if we are running under X we need feh
+    if [[ -n "$DISPLAY" ]] && ! which feh > /dev/null; then
+        echo "ERROR: The feh package isn't installed!"
+        echo "Please install it with 'sudo apt-get install feh'."
+        exit 1
+    fi
+}
+
+
+
+function check_args() {
+    if [[ -z "$1" ]]; then
+        echo "ERROR: Missing theme name."
+        usage
+        exit 1
+    fi
+
+    theme="$1"
+    theme_dir="$ES_DIR/themes/$theme"
+
+    if ! [[ -d "$theme_dir" ]]; then
+        echo "ERROR: there's no theme named \"$1\" installed."
+        usage
+        exit 1
+    fi
+}
+
+
+
+# Get the useful data for a theme of a specific system. The "system" global
+# variable must be filled.
+function get_data_from_theme_xml() {
+    if [[ -z "$1" ]]; then
+        echo "ERROR: get_data_from_theme_xml(): missing argument."
+        echo "Available options: background font logo tile"
+        exit 1
+    fi
+
+    if [[ -z "$system" ]]; then
+        echo "ERROR: get_data_from_theme_xml(): the system is undefined."
+        exit 1
+    fi
+
+    local xml_path=
+    local system_theme_dir=
+    local xml_file=
+    local data=""
+
+    system_theme_dir=$(
+        xmlstarlet sel -t -v \
+          "/systemList/system[name='$system']/theme" \
+          "$ES_DIR/es_systems.cfg"
+    )
+
+    xml_file="$theme_dir/$system_theme_dir/theme.xml"
+
+    case "$1" in
+    "background")
+        xml_path="/theme/view[contains(@name,'system')]/image[@name='background']/path"
+        ;;
+    "tile")
+        xml_path="/theme/view[contains(@name,'system')]/image[@name='background']/tile"
+        ;;
+    "logo")
+        xml_path="/theme/view[contains(@name,'system')]/image[@name='logo']/path"
+        ;;
+    "font")
+        xml_path="/theme/view[contains(@name,'detailed')]/textlist/fontPath"
+        ;;
+    *)
+        echo "ERROR: get_data_from_theme_xml(): invalid argument"
+        exit 1
+        ;;
+    esac
+
+
+    data=$(
+        xmlstarlet sel -t -v \
+          "$xml_path" \
+          "$xml_file" 2> /dev/null
+    )
+    
+    # if don't find the wanted data on the theme.xml, let's see if there's
+    # some <include>d file in it and look for the background there.
+    if [[ -z "$data" ]]; then
+        local included_xml=$(
+            xmlstarlet sel -t -v \
+              "/theme/include" \
+              "$xml_file" 2> /dev/null
+        )
+
+        [[ -z "$included_xml" ]] && return
+
+        xml_file="$(dirname $xml_file)/$included_xml"
+
+        data=$(
+            xmlstarlet sel -t -v \
+              "$xml_path" \
+              "$xml_file" 2> /dev/null
+        )
+    fi
+
+    [[ -z "$data" ]] && return
+
+    if [[ "$1" = "tile" ]]; then
+        echo "$data"
+        return
+    fi
+    
+    # dealing with known issues in themes
+    if [[ "$theme" = "carbon" ]]; then
+        if [[ "$1" = "logo" ]]; then
+            # due to color problems, we use system3.png for gameandwatch
+            # and system2.png for steam
+            # TODO: deal with the gamecube also...
+            case "$system" in
+            "gameandwatch")
+                data="${data/%system.svg/system3.svg}"
+                ;;
+            "steam")
+                data="${data/%system.svg/system2.svg}"
+                ;;
+            esac
+        fi
+
+    fi
+
+    echo "$(dirname $xml_file)/$data"
+} # end of get_data_from_theme_xml()
+
+
+function create_launching_image() {
+    if [[ -z "$system" ]]; then
+        echo "ERROR: get_data_from_theme_xml(): the system is undefined."
+        exit 1
+    fi
+
+    #############################
+    # getting the background file
+    background=$(get_data_from_theme_xml background)
+    if [[ -z "$background" ]]; then
+        echo "WARNING: No background found for \"$system\" system."
+        return 1
+    fi
+
+    #######################
+    # getting the logo file
+    logo=$(get_data_from_theme_xml logo)
+    if [[ -z "$logo" ]]; then
+        echo "WARNING: No logo found for \"$system\" system."
+        return 1
+    fi
+
+    echo "Converting the logo file from SVG to PNG..."
+    convert -background none \
+      -resize "450x176" \
+      "$logo" "$TMP_LOGO"
+    
+    if ! [[ -f "$TMP_LOGO" ]]; then
+        echo "WARNING: we had some problem when converting \"$system\" logo image."
+        return 1
+    fi
+
+    #######################
+    # getting the font file
+    font=$(get_data_from_theme_xml font)
+    if [[ -z "$font" ]]; then
+        echo "WARNING: No font found for \"$system\" system."
+        return 1
+    fi
+
+
+    convert_cmd=(convert)
+    if [[ "$(get_data_from_theme_xml tile)" = true ]]; then
+        convert_cmd+=(-size 800x600 "tile:")
+    else
+        convert_cmd+=(-resize '800x600!' " ") # the trailing space is needed
+    fi
+    
+    # the convert commands are nested to ensure that everything runs fine
+    ${convert_cmd[@]}"$background" \
+      -gravity center "$TMP_LOGO" \
+      -composite "$TMP_LAUNCHING" \
+    && convert "$TMP_LAUNCHING" \
+      -gravity center \
+      -font "$font" \
+      -weight 700 \
+      -pointsize 24 \
+      -fill "$loading_text_color" \
+      -annotate +0+170 "NOW LOADING" \
+      "$TMP_LAUNCHING" \
+    && convert "$TMP_LAUNCHING" \
+      -gravity center \
+      -font "$font" \
+      -weight 700 \
+      -pointsize 14 \
+      -fill "$press_a_button_text_color" \
+      -annotate +0+230 "PRESS A BUTTON TO CONFIGURE LAUNCH OPTIONS" \
+      "$TMP_LAUNCHING" \
+    && convert "$TMP_LAUNCHING" -quality 80 "$TMP_LAUNCHING" \
+    && echo "File \"$TMP_LAUNCHING\" created with success!" \
+    || failed+=($system)
+
+    show_image "$TMP_LAUNCHING"
+
+    dialog \
+      --yesno "Do you accept this as the launching image for \"$system\" system?" \
+      8 55 \
+      && mv "$TMP_LAUNCHING" "$CONFIGS/$system/launching.png"
+}
+
+
+
+function show_image() {
+    if [[ -z "$1" ]]; then
+        echo "ERROR: show_image(): missing image file name."
+        exit 1
+    fi
+    local image="$1"
+
+    # if we are running under X use feh otherwise try and use fbi
+    # TODO: display the image until user press enter (no timeout)
+    if [[ -n "$DISPLAY" ]]; then
+        feh -F -N -Z -Y -q "$image" & &>/dev/null
+        IMG_PID=$!
+        sleep 5
+        kill -SIGINT "$IMG_PID" 2>/dev/null
+    else
+        fbi -1 -t 5 -noverbose -a "$image" </dev/tty &>/dev/null
+    fi
+}
+
+# start here ################################################################
+
+check_dep
+
+check_args "$@"
+
+installed_systems=$(
+    xmlstarlet sel -t -v \
+      "/systemList/system/name" \
+      "$ES_DIR/es_systems.cfg"
+)
+# ignoring retropie menu
+installed_systems="${installed_systems/retropie/}"
+
+for system in $installed_systems; do
+    if ! create_launching_image ; then
+        echo "The launching image for \"$system\" was NOT created."
+        failed+=($system)
+        continue
+    fi
+done
+
+if [[ -n "$failed" ]]; then
+    echo "Failed to create images for the following systems: ${failed[@]}"
+fi
+
