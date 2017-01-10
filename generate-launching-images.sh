@@ -306,10 +306,11 @@ installed_systems=$(
 # ignoring retropie menu
 installed_systems="${installed_systems/retropie/}"
 
+dialog \
+  --msgbox "We're going to show the generated launching images for the systems you have.\n\nEach image will be displayed for 5 seconds and then you have to accept it or not." \
+  10 55
+
 for system in $installed_systems; do
-    dialog \
-      --msgbox "We're going to show the generated launching images for the systems you have.\n\nEach image will be displayed for 5 seconds and then you have to accept it or not." \
-      10 55
     if ! create_launching_image ; then
         echo "The launching image for \"$system\" was NOT created."
         failed+=($system)
