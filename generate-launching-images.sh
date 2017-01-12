@@ -8,7 +8,6 @@
 #
 # Requirements:
 # - RetroPie 4.0.3+
-# - the theme installed (it's the default theme on RetroPie)
 # - the imagemagick package installed (it means 26.1 MB of disk space used).
 #
 # TODO: 
