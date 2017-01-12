@@ -29,7 +29,7 @@ readonly ES_DIR=("/etc/emulationstation" "$HOME/.emulationstation")
 readonly CONFIGS="/opt/retropie/configs"
 readonly TMP_BACKGROUND="/tmp/background.png"
 readonly TMP_LOGO="/tmp/system_logo.png"
-readonly TMP_LAUNCHING="/tmp/launching.png"
+readonly TMP_LAUNCHING="/tmp/launching"
 
 theme=
 theme_dir=
@@ -111,7 +111,7 @@ function check_args() {
 function get_data_from_theme_xml() {
     if [[ -z "$1" ]]; then
         echo "ERROR: get_data_from_theme_xml(): missing argument."
-        echo "Available options: background font logo tile"
+        echo "Available options: background font logo tile bg_color"
         exit 1
     fi
 
@@ -163,7 +163,7 @@ function get_data_from_theme_xml() {
     )
     
     # if don't find the wanted data on the theme.xml, let's see if there's
-    # some <include>d file in it and look for the background there.
+    # some <include>d file in it and look for the data there.
     if [[ -z "$data" ]]; then
         local included_xml=$(
             xmlstarlet sel -t -v \
@@ -272,43 +272,43 @@ function create_launching_image() {
     if [[ "$(get_data_from_theme_xml tile)" =~ ^[Tt][Rr][Uu][Ee]$ ]]; then
         convert_cmd+=(-size 800x600 "tile:")
     else
-        convert_cmd+=(-resize '800x600!' " ") # the trailing space is needed
+        convert_cmd+=(-resize 'x600' " ") # the trailing space is needed
     fi
     
     # the convert commands are nested to ensure that everything runs fine
     ${convert_cmd[@]}"$background" \
       -gravity center "$TMP_LOGO" \
-      -composite "$TMP_LAUNCHING" \
-    && convert "$TMP_LAUNCHING" \
+      -composite "$TMP_LAUNCHING.png" \
+    && convert "$TMP_LAUNCHING.png" \
       -gravity center \
       -font "$font" \
       -weight 700 \
       -pointsize 24 \
       -fill "$loading_text_color" \
       -annotate +0+170 "NOW LOADING" \
-      "$TMP_LAUNCHING" \
-    && convert "$TMP_LAUNCHING" \
+      "$TMP_LAUNCHING.png" \
+    && convert "$TMP_LAUNCHING.png" \
       -gravity center \
       -font "$font" \
       -weight 700 \
       -pointsize 14 \
       -fill "$press_a_button_text_color" \
       -annotate +0+230 "PRESS A BUTTON TO CONFIGURE LAUNCH OPTIONS" \
-      "$TMP_LAUNCHING" \
-    && convert "$TMP_LAUNCHING" -quality 80 "$TMP_LAUNCHING" \
+      "$TMP_LAUNCHING.png" \
+    && convert "$TMP_LAUNCHING.png" -quality 80 "$TMP_LAUNCHING.jpg" \
     && echo "Launching image for \"$system\" created with success!" \
     || failed+=($system)
 
 
     # XXX: this is ugly!
     if [[ "$yes_flag" =~ ^[Tt][Rr][Uu][Ee]$ ]]; then
-        mv "$TMP_LAUNCHING" "$CONFIGS/$system/launching.png"
+        mv "$TMP_LAUNCHING.jpg" "$CONFIGS/$system/launching.jpg"
     else
-        show_image "$TMP_LAUNCHING"
+        show_image "$TMP_LAUNCHING.jpg"
         dialog \
           --yesno "Do you accept this as the launching image for \"$system\" system?" \
           8 55 \
-          && mv "$TMP_LAUNCHING" "$CONFIGS/$system/launching.png"
+          && mv "$TMP_LAUNCHING.jpg" "$CONFIGS/$system/launching.jpg"
           return 0
     fi
 } # end of creating_launching_image
