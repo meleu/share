@@ -41,6 +41,7 @@ logo=
 font=
 loading_text_color="white"
 press_a_button_text_color="gray50"
+show_timeout=5
 
 # if you're running it over SSH, you won't be able to see the images to
 # accept it. If you want to accept it anyway, set the "yes_flag" to true.
@@ -329,10 +330,10 @@ function show_image() {
     if [[ -n "$DISPLAY" ]]; then
         feh -F -N -Z -Y -q "$image" & &>/dev/null
         IMG_PID=$!
-        sleep 5
+        sleep "$show_timeout"
         kill -SIGINT "$IMG_PID" 2>/dev/null
     else
-        fbi -1 -t 5 -noverbose -a "$image" </dev/tty &>/dev/null
+        fbi -1 -t "$show_timeout" -noverbose -a "$image" </dev/tty &>/dev/null
     fi
 }
 
@@ -357,7 +358,7 @@ if [[ "$yes_flag" =~ ^[Tt][Rr][Uu][Ee]$ ]]; then
       10 55 || exit
 else
     dialog \
-      --msgbox "We're going to show the generated launching images for the systems you have.\n\nEach image will be displayed for 5 seconds and then you have to accept it or not." \
+      --msgbox "We're going to show the generated launching images for the systems you have.\n\nEach image will be displayed for $show_timeout seconds and then you have to accept it or not." \
       10 55
 fi
 
