@@ -23,7 +23,9 @@
 #   pink red orange yellow green silver blue cyan purple brown
 
 # globals ###################################################################
-readonly ES_DIR="/etc/emulationstation"
+
+# the first string of ES_DIR array MUST be the /etc/emulationstation
+readonly ES_DIR=("/etc/emulationstation" "$HOME/.emulationstation")
 readonly CONFIGS="/opt/retropie/configs"
 readonly TMP_LOGO="/tmp/system_logo.png"
 readonly TMP_LAUNCHING="/tmp/launching.png"
@@ -39,6 +41,10 @@ font=
 loading_text_color="white"
 press_a_button_text_color="gray50"
 
+# if you're running it over SSH, you won't be able to see the images to
+# accept it. If you want to accept it anyway, set the "yes_flag" to true.
+yes_flag=TRUE
+
 
 # functions #################################################################
 
@@ -47,7 +53,10 @@ function usage() {
     echo "USAGE: $(basename $0) theme-name"
     echo
     echo "Available themes on your system:"
-    ls "$ES_DIR/themes"
+    local dir=
+    for dir in "${ES_DIR[@]}"; do
+        ls -d "$dir"/themes/*/ | xargs basename -a
+    done
 }
 
 
@@ -78,7 +87,14 @@ function check_args() {
     fi
 
     theme="$1"
-    theme_dir="$ES_DIR/themes/$theme"
+
+    local dir=
+    # XXX: it'll look for the themes on /etc/emulationstation first.
+    #      Maybe it should look at the $HOME/.emulationstation first.
+    for dir in "${ES_DIR[@]}"; do
+        theme_dir="$dir/themes/$theme"
+        [[ -d "$theme_dir" ]] && break
+    done
 
     if ! [[ -d "$theme_dir" ]]; then
         echo "ERROR: there's no theme named \"$1\" installed."
@@ -213,7 +229,6 @@ function create_launching_image() {
         return 1
     fi
 
-    echo "Converting the logo file from SVG to PNG..."
     convert -background none \
       -resize "450x176" \
       "$logo" "$TMP_LOGO"
@@ -260,15 +275,20 @@ function create_launching_image() {
       -annotate +0+230 "PRESS A BUTTON TO CONFIGURE LAUNCH OPTIONS" \
       "$TMP_LAUNCHING" \
     && convert "$TMP_LAUNCHING" -quality 80 "$TMP_LAUNCHING" \
-    && echo "File \"$TMP_LAUNCHING\" created with success!" \
+    && echo "Launching image for \"$system\" created with success!" \
     || failed+=($system)
 
-    show_image "$TMP_LAUNCHING"
 
-    dialog \
-      --yesno "Do you accept this as the launching image for \"$system\" system?" \
-      8 55 \
-      && mv "$TMP_LAUNCHING" "$CONFIGS/$system/launching.png"
+    # XXX: this is ugly!
+    if [[ "$yes_flag" =~ ^[Tt][Rr][Uu][Ee]$ ]]; then
+        mv "$TMP_LAUNCHING" "$CONFIGS/$system/launching.png"
+    else
+        show_image "$TMP_LAUNCHING"
+        dialog \
+          --yesno "Do you accept this as the launching image for \"$system\" system?" \
+          8 55 \
+          && mv "$TMP_LAUNCHING" "$CONFIGS/$system/launching.png"
+    fi
 }
 
 
@@ -306,9 +326,16 @@ installed_systems=$(
 # ignoring retropie menu
 installed_systems="${installed_systems/retropie/}"
 
-dialog \
-  --msgbox "We're going to show the generated launching images for the systems you have.\n\nEach image will be displayed for 5 seconds and then you have to accept it or not." \
-  10 55
+# XXX: this is ugly!
+if [[ "$yes_flag" =~ ^[Tt][Rr][Uu][Ee]$ ]]; then
+    dialog \
+      --yesno "You chose to not see the generated images before installing them. Do you want to proceed?" \
+      10 55 || exit
+else
+    dialog \
+      --msgbox "We're going to show the generated launching images for the systems you have.\n\nEach image will be displayed for 5 seconds and then you have to accept it or not." \
+      10 55
+fi
 
 for system in $installed_systems; do
     if ! create_launching_image ; then
