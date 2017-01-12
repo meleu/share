@@ -43,7 +43,7 @@ press_a_button_text_color="gray50"
 
 # if you're running it over SSH, you won't be able to see the images to
 # accept it. If you want to accept it anyway, set the "yes_flag" to true.
-yes_flag=TRUE
+yes_flag=false
 
 
 # functions #################################################################
