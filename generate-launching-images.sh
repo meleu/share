@@ -27,6 +27,7 @@
 # the first string of ES_DIR array MUST be the /etc/emulationstation
 readonly ES_DIR=("/etc/emulationstation" "$HOME/.emulationstation")
 readonly CONFIGS="/opt/retropie/configs"
+readonly TMP_BACKGROUND="/tmp/background.png"
 readonly TMP_LOGO="/tmp/system_logo.png"
 readonly TMP_LAUNCHING="/tmp/launching.png"
 
@@ -35,7 +36,7 @@ theme_dir=
 system=
 failed=()
 background=
-tile_flag=
+bg_color=
 logo=
 font=
 loading_text_color="white"
@@ -139,8 +140,11 @@ function get_data_from_theme_xml() {
     "tile")
         xml_path="/theme/view[contains(@name,'system')]/image[@name='background']/tile"
         ;;
+    "bg_color")
+        xml_path="/theme/view[contains(@name,'system')]/image[@name='background']/color"
+        ;;
     "logo")
-        xml_path="/theme/view[contains(@name,'system')]/image[@name='logo']/path"
+        xml_path="/theme/view[contains(@name,'detailed')]/image[@name='logo']/path"
         ;;
     "font")
         xml_path="/theme/view[contains(@name,'detailed')]/textlist/fontPath"
@@ -180,7 +184,7 @@ function get_data_from_theme_xml() {
 
     [[ -z "$data" ]] && return
 
-    if [[ "$1" = "tile" ]]; then
+    if [[ "$1" = "tile" || "$1" = "bg_color" ]]; then
         echo "$data"
         return
     fi
@@ -248,7 +252,14 @@ function create_launching_image() {
 
 
     convert_cmd=(convert)
-    if [[ "$(get_data_from_theme_xml tile)" = true ]]; then
+    if [[ "$(get_data_from_theme_xml tile)" =~ ^[Tt][Rr][Uu][Ee]$ ]]; then
+        # getting the background color
+        bg_color=$(get_data_from_theme_xml bg_color)
+        if [[ -n "$bg_color" ]]; then
+            convert -fill "#$bg_color" -colorize 100,100,100 \
+              "$background" "$TMP_BACKGROUND"
+            background="$TMP_BACKGROUND"
+        fi
         convert_cmd+=(-size 800x600 "tile:")
     else
         convert_cmd+=(-resize '800x600!' " ") # the trailing space is needed
