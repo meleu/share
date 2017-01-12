@@ -225,6 +225,23 @@ function create_launching_image() {
         return 1
     fi
 
+    ##############################
+    # getting the background color
+    bg_color=$(get_data_from_theme_xml bg_color)
+    if [[ -n "$bg_color" ]]; then
+        # XXX: dealing with a known issue with the material theme.
+        #      This is an ugly workaround.
+        if [[ "$theme" = material ]]; then
+            convert -fill "#$bg_color" -colorize 100,100,100 \
+              "$background" "$TMP_BACKGROUND"
+            background="$TMP_BACKGROUND"
+        else
+            convert -fill "#$bg_color" -colorize 25,25,25 \
+              "$background" "$TMP_BACKGROUND"
+            background="$TMP_BACKGROUND"
+        fi
+    fi
+
     #######################
     # getting the logo file
     logo=$(get_data_from_theme_xml logo)
@@ -253,13 +270,6 @@ function create_launching_image() {
 
     convert_cmd=(convert)
     if [[ "$(get_data_from_theme_xml tile)" =~ ^[Tt][Rr][Uu][Ee]$ ]]; then
-        # getting the background color
-        bg_color=$(get_data_from_theme_xml bg_color)
-        if [[ -n "$bg_color" ]]; then
-            convert -fill "#$bg_color" -colorize 100,100,100 \
-              "$background" "$TMP_BACKGROUND"
-            background="$TMP_BACKGROUND"
-        fi
         convert_cmd+=(-size 800x600 "tile:")
     else
         convert_cmd+=(-resize '800x600!' " ") # the trailing space is needed
@@ -299,8 +309,9 @@ function create_launching_image() {
           --yesno "Do you accept this as the launching image for \"$system\" system?" \
           8 55 \
           && mv "$TMP_LAUNCHING" "$CONFIGS/$system/launching.png"
+          return 0
     fi
-}
+} # end of creating_launching_image
 
 
 
