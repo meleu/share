@@ -23,8 +23,7 @@
 
 # globals ###################################################################
 
-# the first string of ES_DIR array MUST be the /etc/emulationstation
-readonly ES_DIR=("/etc/emulationstation" "$HOME/.emulationstation")
+readonly ES_DIR=("$HOME/.emulationstation" "/etc/emulationstation")
 readonly CONFIGS="/opt/retropie/configs"
 readonly TMP_BACKGROUND="/tmp/background.png"
 readonly TMP_LOGO="/tmp/system_logo.png"
@@ -90,8 +89,6 @@ function check_args() {
     theme="$1"
 
     local dir=
-    # XXX: it'll look for the themes on /etc/emulationstation first.
-    #      Maybe it should look at the $HOME/.emulationstation first.
     for dir in "${ES_DIR[@]}"; do
         theme_dir="$dir/themes/$theme"
         [[ -d "$theme_dir" ]] && break
@@ -124,11 +121,16 @@ function get_data_from_theme_xml() {
     local system_theme_dir=
     local xml_file=
     local data=""
+    local dir=
+
+    for dir in "${ES_DIR[@]}"; do
+        [[ -f "$dir/es_systems.cfg" ]] && break
+    done
 
     system_theme_dir=$(
         xmlstarlet sel -t -v \
           "/systemList/system[name='$system']/theme" \
-          "$ES_DIR/es_systems.cfg"
+          "$dir/es_systems.cfg"
     )
 
     xml_file="$theme_dir/$system_theme_dir/theme.xml"
@@ -341,6 +343,10 @@ function show_image() {
 check_dep
 
 check_args "$@"
+
+for dir in "${ES_DIR[@]}"; do
+    [[ -f "$dir/es_systems.cfg" ]] && break
+done
 
 installed_systems=$(
     xmlstarlet sel -t -v \
