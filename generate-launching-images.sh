@@ -29,7 +29,7 @@ readonly ES_DIR=("/etc/emulationstation" "$HOME/.emulationstation")
 readonly CONFIGS="/opt/retropie/configs"
 readonly TMP_BACKGROUND="/tmp/background.png"
 readonly TMP_LOGO="/tmp/system_logo.png"
-readonly TMP_LAUNCHING="/tmp/launching"
+readonly TMP_LAUNCHING="/tmp/launching.png"
 
 theme=
 theme_dir=
@@ -217,6 +217,8 @@ function create_launching_image() {
         exit 1
     fi
 
+    local destination="$CONFIGS/$system/launching.png"
+
     #############################
     # getting the background file
     background=$(get_data_from_theme_xml background)
@@ -278,37 +280,37 @@ function create_launching_image() {
     # the convert commands are nested to ensure that everything runs fine
     ${convert_cmd[@]}"$background" \
       -gravity center "$TMP_LOGO" \
-      -composite "$TMP_LAUNCHING.png" \
-    && convert "$TMP_LAUNCHING.png" \
+      -composite "$TMP_LAUNCHING" \
+    && convert "$TMP_LAUNCHING" \
       -gravity center \
       -font "$font" \
       -weight 700 \
       -pointsize 24 \
       -fill "$loading_text_color" \
       -annotate +0+170 "NOW LOADING" \
-      "$TMP_LAUNCHING.png" \
-    && convert "$TMP_LAUNCHING.png" \
+      "$TMP_LAUNCHING" \
+    && convert "$TMP_LAUNCHING" \
       -gravity center \
       -font "$font" \
       -weight 700 \
       -pointsize 14 \
       -fill "$press_a_button_text_color" \
       -annotate +0+230 "PRESS A BUTTON TO CONFIGURE LAUNCH OPTIONS" \
-      "$TMP_LAUNCHING.png" \
-    && convert "$TMP_LAUNCHING.png" -quality 80 "$TMP_LAUNCHING.jpg" \
+      "$TMP_LAUNCHING" \
+    && convert "$TMP_LAUNCHING" -quality 80 "$TMP_LAUNCHING" \
     && echo "Launching image for \"$system\" created with success!" \
     || failed+=($system)
 
 
     # XXX: this is ugly!
     if [[ "$yes_flag" =~ ^[Tt][Rr][Uu][Ee]$ ]]; then
-        mv "$TMP_LAUNCHING.jpg" "$CONFIGS/$system/launching.jpg"
+        mv "$TMP_LAUNCHING" "$destination"
     else
-        show_image "$TMP_LAUNCHING.jpg"
+        show_image "$TMP_LAUNCHING"
         dialog \
           --yesno "Do you accept this as the launching image for \"$system\" system?" \
           8 55 \
-          && mv "$TMP_LAUNCHING.jpg" "$CONFIGS/$system/launching.jpg"
+          && mv "$TMP_LAUNCHING" "$destination"
           return 0
     fi
 } # end of creating_launching_image
