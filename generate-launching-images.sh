@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # generate-launching-images.sh
 ##############################
 #
@@ -11,7 +12,6 @@
 # - the imagemagick package installed (it means 26.1 MB of disk space used).
 #
 # TODO: 
-# - best options for known themes
 # - --logo-belt
 # - --loading-text-belt
 # - --press-button-text-belt
@@ -32,63 +32,30 @@ ES_SYSTEMS_CFG=
 FAILED_SYSTEMS=()
 SUCCEEDED_SYSTEMS=()
 
-# --theme
+
+
+# settings variables ########################################################
+
 THEME=
-
-# --extension
 EXT="png"
-
-# --show-timeout
 SHOW_TIMEOUT=5
-
-# --no-ask
 NO_ASK=0
-
-# --loading-text
 LOADING_TEXT="NOW LOADING"
-
-# --press-button-text
 PRESS_BUTTON_TEXT="PRESS A BUTTON TO CONFIGURE LAUNCH OPTIONS"
-
-# --loading-text-color
 LOADING_TEXT_COLOR="white"
-
-# --press-button-text-color
 PRESS_BUTTON_TEXT_COLOR="gray50"
-
-# --no-logo
 NO_LOGO="0"
-
-# --all-systems
 ALL_SYSTEMS="0"
-
-# --destination-dir
 DESTINATION_DIR="$CONFIGS"
-
-# --system
 SYSTEMS_ARRAY=()
-
-# --solid-bg-color
 SOLID_BG_COLOR=
 SOLID_BG_COLOR_FLAG=
-
-# --logo-belt
-LOGO_BELT="0"
-
-# --loading-text-belt
-LOADING_TEXT_BELT="0"
-
-# --press-button-text-belt
-PRESS_BUTTON_TEXT_BELT="0"
-
-# --es-view
-ES_VIEW=
-
-# --logo-color
-LOGO_COLOR=
-
-# --logo-belt-color
-LOGO_BELT_COLOR=
+# TODO: implement these
+#LOGO_BELT="0"
+#LOADING_TEXT_BELT="0"
+#PRESS_BUTTON_TEXT_BELT="0"
+#ES_VIEW=
+#LOGO_COLOR=
 
 
 
@@ -125,73 +92,6 @@ function usage() {
     echo
     echo "Use '--help' to see all the options"
     echo
-}
-
-
-
-function list_themes() {
-    echo
-    echo "Available themes on your system:"
-    local dir=
-    for dir in "${ES_DIR[@]}"; do
-        ls -d "$dir"/themes/*/ | xargs basename -a
-    done
-}
-
-
-
-function check_argument() {
-    # FIXME: it'll be a problem if a theme name starts with '-'
-    if [[ -z "$2" || "$2" =~ ^- ]]; then
-        echo "$1: missing argument" >&2
-        return 1
-    fi
-}
-
-
-
-function proceed() {
-    local msg=$(
-        echo    "Theme......................: $THEME\n"
-        echo    "Image extension............: $EXT\n"
-        echo    "\"LOADING\" text.............: $LOADING_TEXT\n"
-        echo    "\"PRESS A BUTTON\" text......: $PRESS_BUTTON_TEXT\n"
-        echo    "\"LOADING\" text color.......: $LOADING_TEXT_COLOR\n"
-        echo    "\"PRESS A BUTTON\" text color: $PRESS_BUTTON_TEXT_COLOR\n"
-        echo    "Destination directory......: \"$DESTINATION_DIR\"\n"
-        echo    "Show image timeout.........: $SHOW_TIMEOUT\n"
-
-        [[ "$SOLID_BG_COLOR_FLAG" = "1" ]] \
-        && echo "Solid background color.....: ${SOLID_BG_COLOR:-from the theme}\n"
-
-        [[ "$NO_ASK" = "1" ]] \
-        && echo "Do not ask for confirmation (blindly accept generated images).\n"
-
-        [[ "$NO_LOGO" = "1" ]]  \
-        && echo "The images will be created with no system logo.\n"
-
-        echo "\n\nDO YOU WANT TO PROCEED?\n"
-    )
-
-    dialog \
-      --title " SETTINGS SUMMARY " \
-      --yesno "$msg" \
-      20 75 || exit
-}
-
-
-
-# check if $1 is a valid color, exit if it's not.
-function validate_color() {
-    if convert -list color | grep -q "^$1\b"; then
-        return 0
-    fi
-    echo "ERROR: invalid color \"$1\"." >&2
-    echo "Short list of available colors:" >&2
-    echo "black white gray gray10 gray25 gray50 gray75 gray90" >&2
-    echo "pink red orange yellow green silver blue cyan purple brown" >&2
-    echo "TIP: run the 'convert -list color' command to get a full list" >&2
-    exit 1
 }
 
 
@@ -371,6 +271,42 @@ function get_options() {
 
 
 
+function list_themes() {
+    echo
+    echo "Available themes on your system:"
+    local dir=
+    for dir in "${ES_DIR[@]}"; do
+        ls -d "$dir"/themes/*/ | xargs basename -a
+    done
+}
+
+
+
+function check_argument() {
+    # FIXME: it'll be a problem if a theme name starts with '-'
+    if [[ -z "$2" || "$2" =~ ^- ]]; then
+        echo "$1: missing argument" >&2
+        return 1
+    fi
+}
+
+
+
+# check if $1 is a valid color, exit if it's not.
+function validate_color() {
+    if convert -list color | grep -q "^$1\b"; then
+        return 0
+    fi
+    echo "ERROR: invalid color \"$1\"." >&2
+    echo "Short list of available colors:" >&2
+    echo "black white gray gray10 gray25 gray50 gray75 gray90" >&2
+    echo "pink red orange yellow green silver blue cyan purple brown" >&2
+    echo "TIP: run the 'convert -list color' command to get a full list" >&2
+    exit 1
+}
+
+
+
 function show_image() {
     [[ -f "$1" ]] || return 1
 
@@ -379,12 +315,22 @@ function show_image() {
     # if we are running under X use feh otherwise try to use fbi
     # TODO: display the image until user press enter (no timeout)
     if [[ -n "$DISPLAY" ]]; then
-        feh -F -N -Z -Y -q "$image" & &>/dev/null
-        local pid=$!
-        sleep "$SHOW_TIMEOUT"
-        kill -SIGINT "$pid" 2>/dev/null
+        feh \
+          --cycle-once \
+          --hide-pointer \
+          --fullscreen \
+          --auto-zoom \
+          --no-menus \
+          --slideshow-delay $SHOW_TIMEOUT \
+          --quiet \
+          "$image"
     else
-        fbi -1 -t "$SHOW_TIMEOUT" -noverbose -a "$image" </dev/tty &>/dev/null
+        fbi \
+          --once \
+          --timeout "$SHOW_TIMEOUT" \
+          --noverbose \
+          --autozoom \
+          "$image" </dev/tty &>/dev/null
     fi
 }
 
@@ -409,6 +355,7 @@ function get_systems() {
 
     SYSTEMS_ARRAY+=($installed_systems)
 }
+
 
 
 # Get the useful data for a theme of a specific system. The "system" global
@@ -517,6 +464,68 @@ function get_data_from_theme_xml() {
 
 
 
+function proceed() {
+    local msg=$(
+        echo    "Theme......................: $THEME\n"
+        echo    "Image extension............: $EXT\n"
+        echo    "\"LOADING\" text.............: $LOADING_TEXT\n"
+        echo    "\"PRESS A BUTTON\" text......: $PRESS_BUTTON_TEXT\n"
+        echo    "\"LOADING\" text color.......: $LOADING_TEXT_COLOR\n"
+        echo    "\"PRESS A BUTTON\" text color: $PRESS_BUTTON_TEXT_COLOR\n"
+        echo    "Destination directory......: \"$DESTINATION_DIR\"\n"
+        echo    "Show image timeout.........: $SHOW_TIMEOUT\n"
+
+        [[ "$SOLID_BG_COLOR_FLAG" = "1" ]] \
+        && echo "Solid background color.....: ${SOLID_BG_COLOR:-from the theme}\n"
+
+        [[ "$NO_ASK" = "1" ]] \
+        && echo "Do not ask for confirmation (blindly accept generated images).\n"
+
+        [[ "$NO_LOGO" = "1" ]]  \
+        && echo "The images will be created with no system logo.\n"
+
+        echo "\n\nDO YOU WANT TO PROCEED?\n"
+    )
+
+    dialog \
+      --title " SETTINGS SUMMARY " \
+      --yesno "$msg" \
+      20 75 || exit
+}
+
+
+
+function create_launching_image() {
+    if [[ -z "$SYSTEM" ]]; then
+        echo "ERROR: create_launching_image(): the system is undefined."
+        exit 1
+    fi
+
+    rm -f "$TMP_BACKGROUND" "$TMP_LAUNCHING"
+
+    if ! prepare_background; then
+        echo "WARNING: failed to prepare the background image for \"$SYSTEM\" system!" >&2
+        return 1
+    fi
+
+    if ! add_logo; then
+        echo "WARNING: failed to add the logo image for \"$SYSTEM\" system!" >&2
+        return 1
+    fi
+
+    if ! add_text; then
+        echo "WARNING: failed to add text to the image for \"$SYSTEM\" system!" >&2
+        return 1
+    fi
+
+    # XXX: decide if this quality reducing is needed.
+    convert "$TMP_LAUNCHING" -quality 80 "$FINAL_IMAGE.$EXT"
+} # end of create_launching_image
+
+
+
+# ImageMagick tricks go in these functions ###################################
+
 function prepare_background() {
     local background=
     local bg_color=
@@ -618,41 +627,13 @@ function add_text() {
 
 
 
-function create_launching_image() {
-    if [[ -z "$SYSTEM" ]]; then
-        echo "ERROR: create_launching_image(): the system is undefined."
-        exit 1
-    fi
-
-    rm -f "$TMP_BACKGROUND" "$TMP_LAUNCHING"
-
-    if ! prepare_background; then
-        echo "WARNING: failed to prepare the background image for \"$SYSTEM\" system!" >&2
-        return 1
-    fi
-
-    if ! add_logo; then
-        echo "WARNING: failed to add the logo image for \"$SYSTEM\" system!" >&2
-        return 1
-    fi
-
-    if ! add_text; then
-        echo "WARNING: failed to add text to the image for \"$SYSTEM\" system!" >&2
-        return 1
-    fi
-
-    # XXX: decide if this quality reducing is needed.
-    convert "$TMP_LAUNCHING" -quality 80 "$FINAL_IMAGE.$EXT"
-} # end of create_launching_image
-
-
 # start here ################################################################
 
 trap safe_exit SIGHUP SIGINT SIGQUIT SIGKILL SIGTERM
 
 check_dep
 
-get_options $@
+get_options "$@"
 
 if ! get_systems; then
     echo "ERROR: failed to get the installed systems!" >&2
@@ -692,5 +673,5 @@ fail_msg=$(
 
 dialog \
   --title " INFO " \
-  --msgbox "LAUNCHING IMAGE GENERATION COMPLETED!\n\n$fail_msg" \
+  --msgbox "LAUNCHING IMAGES GENERATION COMPLETED!\n\n$fail_msg" \
   10 60
