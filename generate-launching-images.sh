@@ -18,6 +18,7 @@
 # - --es-view
 # - --logo-color
 # - --all-systems
+# - --ratio
 
 # globals ###################################################################
 
@@ -150,6 +151,12 @@ function get_options() {
             exit
             ;;
 
+#H --list-systems               List the installed systems on your RetroPie
+#H                              (get this info from es_systems.cfg)
+        --list-systems)
+            list_systems
+            exit
+            ;;
 #H --extension EXT              Set the extension of the created image file
 #H                              (valid options: png|jpg).
         --extension)
@@ -228,7 +235,8 @@ function get_options() {
             ;;
 
 #H --system SYSTEM              Create image only for SYSTEM (the default is
-#H                              create for all systems found in es_systems.cfg).
+#H                              create for all systems found in es_systems.cfg,
+#H                              see --list-systems).
         --system)
             check_argument "$1" "$2" || exit 1
             shift
@@ -272,8 +280,6 @@ function get_options() {
 
 
 function list_themes() {
-    echo
-    echo "Available themes on your system:"
     local dir=
     for dir in "${ES_DIR[@]}"; do
         ls -d "$dir"/themes/*/ | xargs basename -a
@@ -282,8 +288,14 @@ function list_themes() {
 
 
 
+function list_systems() {
+    xmlstarlet sel -t -v "/systemList/system/name" "$ES_SYSTEMS_CFG" | grep -v retropie
+}
+
+
+
 function check_argument() {
-    # FIXME: it'll be a problem if a theme name starts with '-'
+    # XXX: it'll be a problem if a theme name starts with '-'
     if [[ -z "$2" || "$2" =~ ^- ]]; then
         echo "$1: missing argument" >&2
         return 1
@@ -337,23 +349,12 @@ function show_image() {
 
 
 function get_systems() {
-    # if user explicitly defined the system with --system ...
+    # interrupt if user explicitly defined the system with --system
     [[ -n "$SYSTEMS_ARRAY" ]] && return 0
 
-    local installed_systems=
-
-    installed_systems=$(
-        xmlstarlet sel -t -v \
-          "/systemList/system/name" \
-          "$ES_SYSTEMS_CFG"
-    )
-    
+    local installed_systems=$(list_systems)
     [[ -z "$installed_systems" ]] && return 1
-
-    # ignoring retropie menu
-    installed_systems="${installed_systems/retropie/}"
-
-    SYSTEMS_ARRAY+=($installed_systems)
+    SYSTEMS_ARRAY=($installed_systems)
 }
 
 
@@ -380,13 +381,16 @@ function get_data_from_theme_xml() {
 
     case "$1" in
     "background")
-        xml_path="/theme/view[contains(@name,'system')]/image[@name='background']/path"
+#        xml_path="/theme/view[contains(@name,'system')]/image[@name='background']/path"
+        xml_path="/theme/view[contains(@name,'system')]/image[@extra='true']/path"
         ;;
     "tile")
-        xml_path="/theme/view[contains(@name,'system')]/image[@name='background']/tile"
+#        xml_path="/theme/view[contains(@name,'system')]/image[@name='background']/tile"
+        xml_path="/theme/view[contains(@name,'system')]/image[@extra='true']/tile"
         ;;
     "bg_color")
-        xml_path="/theme/view[contains(@name,'system')]/image[@name='background']/color"
+#        xml_path="/theme/view[contains(@name,'system')]/image[@name='background']/color"
+        xml_path="/theme/view[contains(@name,'system')]/image[@extra='true']/color"
         ;;
     "logo")
         xml_path="/theme/view[contains(@name,'detailed')]/image[@name='logo']/path"
@@ -418,7 +422,7 @@ function get_data_from_theme_xml() {
         data=$(
             xmlstarlet sel -t -v \
               "$xml_path" \
-              "$xml_file" 2> /dev/null
+              "$xml_file" | head -1 2> /dev/null
         )
 
         [[ -n "$data" ]] && break
@@ -465,18 +469,27 @@ function get_data_from_theme_xml() {
 
 
 function proceed() {
+    local number_of_systems=$(echo "${SYSTEMS_ARRAY[@]}" | wc -w)
     local msg=$(
         echo    "Theme......................: $THEME\n"
+        echo    "System.....................: $( 
+            if [[ "$number_of_systems" != 1 ]]; then 
+                echo "all systems in es_systems.cfg" 
+            else 
+                echo "$SYSTEMS_ARRAY"
+            fi 
+            echo "\n"
+        )"
+
         echo    "Image extension............: $EXT\n"
         echo    "\"LOADING\" text.............: $LOADING_TEXT\n"
         echo    "\"PRESS A BUTTON\" text......: $PRESS_BUTTON_TEXT\n"
         echo    "\"LOADING\" text color.......: $LOADING_TEXT_COLOR\n"
         echo    "\"PRESS A BUTTON\" text color: $PRESS_BUTTON_TEXT_COLOR\n"
-        echo    "Destination directory......: \"$DESTINATION_DIR\"\n"
         echo    "Show image timeout.........: $SHOW_TIMEOUT\n"
 
         [[ "$SOLID_BG_COLOR_FLAG" = "1" ]] \
-        && echo "Solid background color.....: ${SOLID_BG_COLOR:-from the theme}\n"
+        && echo "Solid background color.....: ${SOLID_BG_COLOR:-get from the theme}\n"
 
         [[ "$NO_ASK" = "1" ]] \
         && echo "Do not ask for confirmation (blindly accept generated images).\n"
@@ -484,13 +497,15 @@ function proceed() {
         [[ "$NO_LOGO" = "1" ]]  \
         && echo "The images will be created with no system logo.\n"
 
+        echo    "Destination directory......: \"$DESTINATION_DIR\"\n"
+
         echo "\n\nDO YOU WANT TO PROCEED?\n"
     )
 
     dialog \
       --title " SETTINGS SUMMARY " \
       --yesno "$msg" \
-      20 75 || exit
+      20 75 || exit 0
 }
 
 
@@ -643,6 +658,11 @@ fi
 proceed
 
 for SYSTEM in ${SYSTEMS_ARRAY[@]}; do
+    dialog \
+      --title ' Please wait ' \
+      --infobox "Generating launching image for \"$SYSTEM\"" \
+      3 50
+
     if ! create_launching_image ; then
         echo "WARNING: The launching image for \"$SYSTEM\" was NOT created." >&2
         FAILED_SYSTEMS+=($SYSTEM)
@@ -658,11 +678,16 @@ for SYSTEM in ${SYSTEMS_ARRAY[@]}; do
           || continue
     fi
 
+    mkdir -p "$DESTINATION_DIR/$SYSTEM"
     if ! mv "$FINAL_IMAGE.$EXT" "$DESTINATION_DIR/$SYSTEM/launching.$EXT"; then
         echo "WARNING: unable to put the created image in \"$DESTINATION_DIR/$SYSTEM\"!" >&2
         FAILED_SYSTEMS+=($SYSTEM)
         continue
     fi
+    case "$EXT" in
+        jpg)    rm -f "$DESTINATION_DIR/$SYSTEM/launching.png" ;;
+        png)    rm -f "$DESTINATION_DIR/$SYSTEM/launching.jpg" ;;
+    esac
 done
 
 
@@ -675,3 +700,5 @@ dialog \
   --title " INFO " \
   --msgbox "LAUNCHING IMAGES GENERATION COMPLETED!\n\n$fail_msg" \
   10 60
+
+safe_exit 0
