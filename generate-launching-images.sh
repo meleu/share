@@ -385,16 +385,13 @@ function get_data_from_theme_xml() {
 
     case "$1" in
     "background")
-#        xml_path="/theme/view[contains(@name,'system')]/image[@name='background']/path"
-        xml_path="/theme/view[contains(@name,'system')]/image[@extra='true']/path"
+        xml_path="/theme/view[contains(@name,'system')]/image[@name='background']/path"
         ;;
     "tile")
-#        xml_path="/theme/view[contains(@name,'system')]/image[@name='background']/tile"
-        xml_path="/theme/view[contains(@name,'system')]/image[@extra='true']/tile"
+        xml_path="/theme/view[contains(@name,'system')]/image[@name='background']/tile"
         ;;
     "bg_color")
-#        xml_path="/theme/view[contains(@name,'system')]/image[@name='background']/color"
-        xml_path="/theme/view[contains(@name,'system')]/image[@extra='true']/color"
+        xml_path="/theme/view[contains(@name,'system')]/image[@name='background']/color"
         ;;
     "logo")
         xml_path="/theme/view[contains(@name,'detailed')]/image[@name='logo']/path"
@@ -426,7 +423,7 @@ function get_data_from_theme_xml() {
         data=$(
             xmlstarlet sel -t -v \
               "$xml_path" \
-              "$xml_file" | head -1 2> /dev/null
+              "$xml_file" 2> /dev/null
         )
 
         [[ -n "$data" ]] && break
