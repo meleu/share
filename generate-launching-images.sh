@@ -12,7 +12,6 @@
 # - the imagemagick package installed (it means 26.1 MB of disk space used).
 #
 # TODO: 
-# - improve error messages feedback to the user
 # - --loading-text-belt
 # - --press-button-text-belt
 # - --es-view
