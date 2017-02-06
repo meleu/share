@@ -12,7 +12,7 @@
 # - the imagemagick package installed (it means 26.1 MB of disk space used).
 #
 # TODO: 
-# - --logo-belt
+# - improve error messages feedback to the user
 # - --loading-text-belt
 # - --press-button-text-belt
 # - --es-view
@@ -52,11 +52,6 @@ SYSTEMS_ARRAY=()
 SOLID_BG_COLOR=
 SOLID_BG_COLOR_FLAG=
 LOGO_BELT="0"
-# TODO: implement these
-#LOADING_TEXT_BELT="0"
-#PRESS_BUTTON_TEXT_BELT="0"
-#ES_VIEW=
-#LOGO_COLOR=
 
 
 
@@ -411,10 +406,7 @@ function get_data_from_theme_xml() {
           "$ES_SYSTEMS_CFG"
     )
 
-    if [[ -z "$system_theme_dir" ]]; then
-        echo "WARNING: \"$SYSTEM\" system not found in $ES_SYSTEMS_CFG" >&2
-        return 1
-    fi
+    [[ -z "$system_theme_dir" ]] && system_theme_dir="$SYSTEM"
 
     xml_file="$THEME_DIR/$system_theme_dir/theme.xml"
 
@@ -453,11 +445,14 @@ function get_data_from_theme_xml() {
             # due to color problems, we use system3.png for gameandwatch
             # and system2.png for steam
             # TODO: deal with the gamecube also...
-            case "$system" in
+            case "$SYSTEM" in
             "gameandwatch")
                 data="${data/%system.svg/system3.svg}"
                 ;;
             "steam")
+                data="${data/%system.svg/system2.svg}"
+                ;;
+            "gc")
                 data="${data/%system.svg/system2.svg}"
                 ;;
             esac
@@ -545,6 +540,7 @@ function create_launching_image() {
 function prepare_background() {
     local background=
     local bg_color=
+    local convert_cmd=(convert)
     local colorize=
 
     # getting the background file
@@ -570,7 +566,6 @@ function prepare_background() {
         background="$TMP_BACKGROUND"
     fi
 
-    convert_cmd=(convert)
     if [[ "$(get_data_from_theme_xml tile)" =~ ^[Tt][Rr][Uu][Ee]$ ]]; then
         convert_cmd+=(-size 1024x576 "tile:")
     else
