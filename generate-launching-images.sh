@@ -31,8 +31,7 @@ readonly FINAL_IMAGE="/tmp/launching"
 THEME_DIR=
 ES_SYSTEMS_CFG=
 FAILED_SYSTEMS=()
-SUCCEEDED_SYSTEMS=()
-
+FAILED_MSGS=()
 
 
 # settings variables ########################################################
@@ -409,9 +408,10 @@ function get_data_from_theme_xml() {
     [[ -z "$system_theme_dir" ]] && system_theme_dir="$SYSTEM"
 
     xml_file="$THEME_DIR/$system_theme_dir/theme.xml"
+    [[ -f "$xml_file" ]] || return 2
 
     # dealing with <include>s
-    while [[ -n "$xml_file" ]]; do
+    while [[ -f "$xml_file" ]]; do
         data=$(
             xmlstarlet sel -t -v \
               "$xml_path" \
@@ -514,18 +514,28 @@ function create_launching_image() {
 
     rm -f "$TMP_BACKGROUND" "$TMP_LAUNCHING"
 
-    if ! prepare_background; then
-        echo "WARNING: failed to prepare the background image for \"$SYSTEM\" system!" >&2
+    local ret_val
+    prepare_background
+    ret_val=$?
+    if [[ "$ret_val" -ne 0 ]]; then
+        FAILED_SYSTEMS+=($SYSTEM)
+        if [[ "$ret_val" -eq 2 ]]; then
+            FAILED_MSGS+=("there's no theme.xml for this system")
+        else
+            FAILED_MSGS+=("failed to prepare the background image.")
+        fi
         return 1
     fi
 
     if ! add_logo; then
-        echo "WARNING: failed to add the logo image for \"$SYSTEM\" system!" >&2
+        FAILED_SYSTEMS+=($SYSTEM)
+        FAILED_MSGS+=("failed to add the logo image.")
         return 1
     fi
 
     if ! add_text; then
-        echo "WARNING: failed to add text to the image for \"$SYSTEM\" system!" >&2
+        FAILED_SYSTEMS+=($SYSTEM)
+        FAILED_MSGS+=("failed to add text to the image.")
         return 1
     fi
 
@@ -544,8 +554,7 @@ function prepare_background() {
     local colorize=
 
     # getting the background file
-    background=$(get_data_from_theme_xml background)
-    [[ -z "$background" ]] && return 1
+    background=$(get_data_from_theme_xml background) || return $?
 
     # getting the background color
     if [[ -n "$SOLID_BG_COLOR" ]]; then
@@ -669,7 +678,6 @@ for SYSTEM in ${SYSTEMS_ARRAY[@]}; do
 
     if ! create_launching_image ; then
         echo "WARNING: The launching image for \"$SYSTEM\" was NOT created." >&2
-        FAILED_SYSTEMS+=($SYSTEM)
         continue
     fi
 
@@ -684,8 +692,8 @@ for SYSTEM in ${SYSTEMS_ARRAY[@]}; do
 
     mkdir -p "$DESTINATION_DIR/$SYSTEM"
     if ! mv "$FINAL_IMAGE.$EXT" "$DESTINATION_DIR/$SYSTEM/launching.$EXT"; then
-        echo "WARNING: unable to put the created image in \"$DESTINATION_DIR/$SYSTEM\"!" >&2
         FAILED_SYSTEMS+=($SYSTEM)
+        FAILED_MSGS+=("unable to put the created image in \"$DESTINATION_DIR/$SYSTEM\".")
         continue
     fi
     case "$EXT" in
@@ -696,8 +704,12 @@ done
 
 
 fail_msg=$(
-    [[ -n "$FAILED_SYSTEMS" ]] \
-    && echo "Failed to create/save image for the following systems: ${FAILED_SYSTEMS[@]}"
+    if [[ -n "$FAILED_SYSTEMS" ]]; then
+        echo "Failed to create image for the following systems:\n"
+        for i in $(seq 0 $[ ${#FAILED_SYSTEMS[@]} - 1 ]); do
+            echo "${FAILED_SYSTEMS[$i]}: ${FAILED_MSGS[$i]}\n"
+        done
+    fi
 )
 
 dialog \
