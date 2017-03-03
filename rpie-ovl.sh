@@ -2,16 +2,47 @@
 # IT'S A WORK IN PROGRESS! CURRENTLY USELESS!
 #
 # TODO:
+# - adicionar opcao de instalar todos os overlays
+# - adicionar opcao de em qual diretorio estao as ROMs
 # - use _ovl.png in overlay filenames
 # - install the overlay for a different core (maybe lr-fba)
 # - dealing with "options", such as the "Burning Force/Option 1"
 
-# TODO: romdir should be /home/$USER/RetroPie/roms/mame-libretro
-readonly romdir="zzdir/roms_mame-libretro"
+#readonly romdir="/home/$USER/RetroPie/roms/mame-libretro"
+readonly romdir="/home/$USER/RetroPie/roms/arcade"
+#readonly romdir="/home/$USER/RetroPie/roms/fba"
+if ! [[ -d "$romdir" ]]; then
+    echo "It seems that you put your roms in some unusual directory. Aborting..." >&2
+    exit 1
+fi
 
-# TODO: inifuncs should be /opt/retropie/lib/inifuncs.sh
-readonly inifuncs="zzdir/inifuncs.sh"
-source "$inifuncs"
+source /opt/retropie/lib/inifuncs.sh || exit 2
+
+function show_image() {
+    local image="$1"
+    local timeout=5
+
+    [[ -f "$image" ]] || return 1
+
+    if [[ -n "$DISPLAY" ]]; then
+        feh \
+            --cycle-once \
+            --hide-pointer \
+            --fullscreen \
+            --auto-zoom \
+            --no-menus \
+            --slideshow-delay $timeout \
+            --quiet \
+            "$image"
+    else
+        fbi \
+            --once \
+            --timeout "$timeout" \
+            --noverbose \
+            --autozoom \
+            "$image" </dev/tty &>/dev/null
+    fi
+}
 
 function games_menu() {
     local cmd=( dialog --checklist "Select the games you want to install the overlay." 18 70 60 )
@@ -19,7 +50,7 @@ function games_menu() {
     local choice
     local i=1
 
-    find -maxdepth 1 -type d | sed 's|^\./\?||; /^$/d' > "$tmpfile"
+    find -maxdepth 1 -type d ! -name .git ! -name . | sed 's|^\./\?||' | sort > "$tmpfile"
     
     while IFS='' read -r game || [[ -n "$game" ]]; do
         options+=( "$i" "$game" off )
@@ -48,7 +79,8 @@ function install_overlays() {
     while IFS='' read -r game || [[ -n "$game" ]]; do
         dialog --infobox "Installing overlay for \"$game\"..." 4 60
 
-        rom_zip_cfg="$(ls "$game"/*.zip.cfg)"
+        # TODO: if there is more than one .zip.cfg file, install both (Moon Cresta case)
+        rom_zip_cfg="$(ls "$game"/*.zip.cfg | head -1)"
         ovl_cfg="${rom_zip_cfg/%zip.cfg/cfg}"
         rom="$(basename "$rom_zip_cfg")"
         rom="${rom%.zip.cfg}"
@@ -65,11 +97,9 @@ function install_overlays() {
         mkdir -p "$ovl_dir"
         cp "$ovl_cfg" "$ini_value"
         ovl_cfg="$ini_value"
-        # TODO: se @UDb23 aceitar a convencao _ovl.png tenho que adaptar isso
-        cp "$game"/*.png "$ovl_dir"
+        cp "$game"/*-ovl.png "$ovl_dir"
 
-        # TODO: se @UDb23 aceitar a convencao _ovl.png tenho que adaptar isso
-        ovl_img=( $(ls "$ovl_dir/$rom"_*.png | xargs basename -a ) )
+        ovl_img=( $(ls "$ovl_dir/$rom"*-ovl.png | xargs basename -a ) )
 
         if [[ ${#ovl_img[@]} -eq 1 ]]; then
             iniSet overlay0_overlay "$ovl_img" "$ovl_cfg"
@@ -80,7 +110,7 @@ function install_overlays() {
             choice=$(dialog --no-items --menu "You have more than one overlay option for \"$game\".\n\nChoose a file to preview and then you'll have a chance to accept it or not." 22 76 16 "${ovl_img[@]}" 2>&1 > /dev/tty) \
             || break
 
-            # TODO: add a preview fbi/feh command
+            show_image "$ovl_dir/$choice"
             dialog --yesno "Do you accept the file \"$choice\" as the overlay for \"$game\"?" 7 60 2>&1 > /dev/tty \
             && break
         done
