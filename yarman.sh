@@ -38,8 +38,8 @@ function enable_yarman() {
     local config="\"$md_inst/yarman.sh\" --start --user $user 2>\&1 > /dev/null \&"
 
     if _is_enabled_yarman; then
-        dialog --yesno "yarman is already enabled in /etc/rc.local with the following config:\n\n$(grep "yarman\.sh" /etc/rc.local)\n\nDo you want to update it?" \
-          22 76 2>&1 >/dev/tty || return
+        dialog --yesno "yarman is already enabled in /etc/rc.local with the following config:\n\n$(grep "yarman\.sh" /etc/rc.local)\n\nDo you want to update it?" 22 76 2>&1 >/dev/tty \
+        || return
     fi
 
     sed -i "/yarman\.sh.*--start/d" /etc/rc.local
