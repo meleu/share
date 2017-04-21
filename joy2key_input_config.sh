@@ -2,11 +2,8 @@
 
 readonly es_input="$HOME/.emulationstation/es_input.cfg"
 
-# es button to be used as enter in joy2key
-enter_btn=a
-
-# es button to be used as tab in joy2key
-tab_btn=b
+enter_btn=a     # es button to be used as enter in joy2key
+tab_btn=b       # es button to be used as tab in joy2key
 
 
 function joy2key_input_config() {
@@ -44,6 +41,7 @@ function joy2key_input_config() {
         fi
     done < <(find /dev/input -name "js*")
 }
+
 
 function get_btn_number() {
     local btn="$1"
