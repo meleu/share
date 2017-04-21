@@ -1,9 +1,8 @@
 #!/bin/bash
 
 readonly es_input="$HOME/.emulationstation/es_input.cfg"
-
-enter_btn=a     # es button to be used as enter in joy2key
-tab_btn=b       # es button to be used as tab in joy2key
+readonly enter_btn=a     # es button to be used as enter in joy2key
+readonly tab_btn=b       # es button to be used as tab in joy2key
 
 
 function joy2key_input_config() {
