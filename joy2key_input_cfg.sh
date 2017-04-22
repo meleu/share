@@ -39,7 +39,7 @@ function joy2key_input_config() {
             tab_btn_num=$(get_btn_number "$tab_btn") || return 1
 
             biggest_num=$tab_btn_num
-            [[ "$tab_btn_num" -lt "$enter_btn_num" ]] && biggest_num=$tenter_btn_num
+            [[ "$tab_btn_num" -lt "$enter_btn_num" ]] && biggest_num=$enter_btn_num
 
             params="$dev kcub1 kcuf1 kcuu1 kcud1"
             for i in $(seq 0 $biggest_num); do
