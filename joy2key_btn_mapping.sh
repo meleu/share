@@ -20,16 +20,15 @@ function joy2key_btn_mapping() {
     local i
     local params
 
+    udevadm info --name=$dev 2> /dev/null | grep -q "ID_INPUT_JOYSTICK=1" || return 1
+    dev_path="$(udevadm info --name=$dev | grep DEVPATH | cut -d= -f2)"
+    dev_name="$(</$(dirname sys$dev_path)/name)"
+
     iniGet menu_swap_ok_cancel_buttons "$retroarchcfg"
     if [[ "$ini_value" == true ]]; then
         enter_btn=b
         tab_btn=a
     fi
-
-    udevadm info --name=$dev 2> /dev/null | grep -q "ID_INPUT_JOYSTICK=1" || return 1
-
-    dev_path="$(udevadm info --name=$dev | grep DEVPATH | cut -d= -f2)"
-    dev_name="$(</$(dirname sys$dev_path)/name)"
 
     # get the retroarch config file for this joypad
     joypadcfg="$(grep -l "input_device *= *\"$dev_name\"" "$CONFIGDIR/all/retroarch-joypads/"*.cfg)"
