@@ -1,15 +1,19 @@
 #!/bin/bash
 
+. /opt/retropie/lib/inifuncs.sh
+readonly CONFIGDIR=/opt/retropie/configs
+iniConfig ' = ' '"'
+
 function joy2key_input_config() {
     local retroarchcfg="$CONFIGDIR/all/retroarch.cfg"
     local joypadcfg
     local enter_btn=a
-    local tab_btn=b
     local enter_btn_num
+    local tab_btn=b
     local tab_btn_num
     local dev
     local dev_name
-    local path
+    local dev_path
     local biggest_num
     local i
 
@@ -22,11 +26,11 @@ function joy2key_input_config() {
     # "inspired" on configedit.sh code
     while read -r dev; do
         if udevadm info --name=$dev | grep -q "ID_INPUT_JOYSTICK=1"; then
-            path="$(udevadm info --name=$dev | grep DEVPATH | cut -d= -f2)"
-            dev_name="$(</$(dirname sys$path)/name)"
+            dev_path="$(udevadm info --name=$dev | grep DEVPATH | cut -d= -f2)"
+            dev_name="$(</$(dirname sys$dev_path)/name)"
 
             # get the retroarch config file for this joypad
-            joypadcfg="$(grep -l "input_device .*$dev_name") $CONFIGDIR/all/retroarch-joypads/*.cfg"
+            joypadcfg="$(grep -l "input_device *= *\"$dev_name\"" "$CONFIGDIR/all/retroarch-joypads/"*.cfg)"
             [[ -f "$joypadcfg" ]] || return 1
             iniGet input_device "$joypadcfg"
             [[ "$ini_value" != "$dev_name" ]] && return 1
@@ -39,15 +43,12 @@ function joy2key_input_config() {
 
             params="$dev kcub1 kcuf1 kcuu1 kcud1"
             for i in $(seq 0 $biggest_num); do
-                if [[ $i -eq $enter_btn_num ]]; then
-                    params+=" 0x0a"
-                elif [[ $i -eq $tab_btn_num ]]; then
-                    params+=" 0x09"
-                else
-                    params+=" \"\""
-                fi
+                case $i in
+                    $enter_btn_num) params+=" 0x0a" ;;
+                    $tab_btn_num)   params+=" 0x09" ;;
+                    *)              params+=" ''" ;;
+                esac
             done
-
             echo "$params"
         fi
     done < <(find /dev/input -name "js*")
