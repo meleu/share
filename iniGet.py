@@ -3,14 +3,20 @@
 import re
 import sys
 
-def iniGet(key, cfg_file):
-    ini_file = open(cfg_file, 'r')
+def ini_get(key, cfg_file):
+    try:
+        ini_file = open(cfg_file, 'r')
+    except:
+        return ""
+    
     pattern = r'[ |\t]*' + key + r'[ |\t]*=[ |\t]*'
     value_m = r'"*([^"\|\r]*)"*'
-
+    value = ""
     for line in ini_file:
         if re.match(pattern, line):
             value = re.sub(pattern + value_m + '.*', r'\1', line)
-            print value
+            break
+    ini_file.close()
+    return value
 
-iniGet(sys.argv[1], sys.argv[2])
+print ini_get(sys.argv[1], sys.argv[2])
