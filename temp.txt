@@ -1,0 +1,405 @@
+# joy2key_btn_config.py
+#######################
+#!/usr/bin/python
+
+import re
+import sys
+
+
+def ini_get(key, cfg_file):
+    try:
+        ini_file = open(cfg_file, 'r')
+    except:
+        return ""
+
+    pattern = r'[ |\t]*' + key + r'[ |\t]*=[ |\t]*'
+    value_m = r'"*([^"\|\r]*)"*'
+    value = ""
+    for line in ini_file:
+        if re.match(pattern, line):
+            value = re.sub(pattern + value_m + '.*', r'\1', line)
+            break
+    ini_file.close()
+    return value
+
+
+# function joy2key_btn_mapping() {
+#     local dev="$1"
+#     [[ "$dev" != "/dev/input/js"* ]] && return 1
+# 
+#     local dev_name
+#     local dev_path
+#     local retroarchcfg="$CONFIGDIR/all/retroarch.cfg"
+#     local joypadcfg
+#     local enter_btn=a
+#     local enter_btn_num
+#     local tab_btn=b
+#     local tab_btn_num
+#     local biggest_num
+#     local i
+#     local params
+    configdir = "/opt/retropie/configs/"
+    retroarch_cfg = configdir + "all/retroarch.cfg"
+    joypad_cfg_dir = configdir + "all/retroarch-joypads/"
+    enter_btn = "a"
+    tab_btn = "b"
+
+# DONE!
+#     udevadm info --name=$dev 2> /dev/null | grep -q "ID_INPUT_JOYSTICK=1" || return 1
+#     dev_path="$(udevadm info --name=$dev | grep DEVPATH | cut -d= -f2)"
+#     dev_name="$(</$(dirname sys$dev_path)/name)"
+    from pyudev import Context
+    for device in Context().list_devices(DEVNAME=dev_path)
+        dev_name_file = device.get('DEVPATH')
+        dev_name_file = "/sys" + os.path.dirname(dev_name_file) + "/name"
+        tmp = open(dev_name_file, "r")
+        dev_name = tmp.read()
+        tmp.close()
+    if dev_name == "":
+        return 1
+        
+
+# DONE!
+#     iniGet menu_swap_ok_cancel_buttons "$retroarchcfg"
+#     if [[ "$ini_value" == true ]]; then
+#         enter_btn=b
+#         tab_btn=a
+#     fi
+    if ini_get('menu_swap_ok_cancel_buttons', retroarch_cfg) == 'true':
+        enter_btn = "b"
+        tab_btn = "a"
+
+# DONE!
+#     # get the retroarch config file for this joypad
+#     joypadcfg="$(grep -l "input_device *= *\"$dev_name\"" "$CONFIGDIR/all/retroarch-joypads/"*.cfg)"
+#     [[ -f "$joypadcfg" ]] || output_params
+    for i in os.listdir(joypad_cfg_dir):
+        if i.endswith(".cfg"):
+            with open(joypad_cfg_dir + i, "r") as tmp
+            for line in tmp:
+                if re.match(r'[ |\t]*input_device.*'+ dev_name, line):
+                    joypad_cfg = tmp.name
+                    break
+    if joypad_cfg == "":
+        return 1
+
+# DONE!
+#     iniGet input_device "$joypadcfg"
+#     [[ "$ini_value" != "$dev_name" ]] && output_params
+    if ini_get('input_device', joypad_cfg) != dev_name:
+        return 1
+
+
+# DONE!
+#     enter_btn_num=$(get_btn_number "$enter_btn") || output_params
+    enter_btn_num = get_btn_num(enter_btn, joypad_cfg)
+    if enter_btn_num == "":
+        return 1
+#     tab_btn_num=$(get_btn_number "$tab_btn") || output_params
+    tab_btn_num = get_btn_num(tab_btn, joypad_cfg)
+    if tab_btn_num == "":
+        return 1
+
+# DONE!
+#     biggest_num=$tab_btn_num
+#     [[ "$tab_btn_num" -lt "$enter_btn_num" ]] && biggest_num=$enter_btn_num
+    biggest_num = tab_btn_num if tab_btn_num > enter_btn_num else enter_btn_num
+
+# DONE!
+#     params=
+#     for i in $(seq 0 $biggest_num); do
+#         case $i in
+#             $enter_btn_num) params+=" 0x0a" ;;
+#             $tab_btn_num)   params+=" 0x09" ;;
+#             *)              params+=" ''" ;;
+#         esac
+#     done
+# 
+#     output_params
+# }
+    # descobrir o jeito pythonico de fazer isso
+    for i in range(biggest_num + 1):
+        if i == enter_btn_num:
+            btn_codes.append("0x0a")
+        elif i == tab_btn_num:
+            btn_codes.append("0x09")
+        else
+            btn_codes.append("")
+        
+    output_params
+
+
+# DONE!
+# function get_btn_number() {
+#     local btn="$1"
+#     iniGet input_${btn}_btn "$joypadcfg"
+#     if [[ -z "$ini_value" ]]; then
+#         iniGet input_player1_${btn}_btn "$joypadcfg"
+#         [[ -z "$ini_value" ]] && return 1
+#     fi
+#     echo "$ini_value"
+# }
+def get_btn_num(btn, cfg):
+    num = ini_get('input_'+btn+'_btn', cfg)
+    if num == "":
+        num = ini_get('input_player1_'+btn+'_btn', cfg)
+        if num == "":
+            return 1
+    return num
+
+
+
+# function output_params() {
+#     # default button mappings: 0 = enter; 1 = tab
+#     [[ -z "$params" ]] && params="0x0a 0x09"
+# 
+#     echo $params
+#     exit
+# }
+# 
+# joy2key_btn_mapping "$1"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# joy2key.py
+############
+#!/usr/bin/python
+
+# This file is part of The RetroPie Project
+# 
+# The RetroPie Project is the legal property of its developers, whose names are
+# too numerous to list here. Please refer to the COPYRIGHT.md file distributed with this source.
+# 
+# See the LICENSE.md file at the top-level directory of this distribution and 
+# at https://raw.githubusercontent.com/RetroPie/RetroPie-Setup/master/LICENSE.md
+#
+
+import os, sys, struct, time, fcntl, termios, signal
+import curses, errno, re
+from pyudev import Context
+
+
+#    struct js_event {
+#        __u32 time;     /* event timestamp in milliseconds */
+#        __s16 value;    /* value */
+#        __u8 type;      /* event type */
+#        __u8 number;    /* axis/button number */
+#    };
+
+JS_MIN = -32768
+JS_MAX = 32768
+JS_REP = 0.20
+
+JS_THRESH = 0.75
+
+JS_EVENT_BUTTON = 0x01
+JS_EVENT_AXIS = 0x02
+JS_EVENT_INIT = 0x80
+
+def signal_handler(signum, frame):
+    close_fds(js_fds)
+    sys.exit(0)
+
+def get_hex_chars(key_str):
+    if (key_str.startswith("0x")):
+        return key_str[2:].decode('hex')
+    else:
+        return curses.tigetstr(key_str)
+
+def get_devices():
+    devs = []
+    if sys.argv[1] == '/dev/input/jsX':
+        for dev in os.listdir('/dev/input'):
+            if dev.startswith('js'):
+                devs.append('/dev/input/' + dev)
+    else:
+        devs.append(sys.argv[1])
+
+    return devs
+
+def open_devices():
+    devs = get_devices()
+
+    fds = []
+    for dev in devs:
+        try:
+            fds.append(os.open(dev, os.O_RDONLY | os.O_NONBLOCK ))
+        except:
+            pass
+
+    return devs, fds
+
+def close_fds(fds):
+    for fd in fds:
+        os.close(fd)
+
+def read_event(fd):
+    while True:
+        try:
+            event = os.read(fd, event_size)
+        except OSError, e:
+            if e.errno == errno.EWOULDBLOCK:
+                return None
+            return False
+
+        else:
+            return event
+
+def process_event(event):
+
+    (js_time, js_value, js_type, js_number) = struct.unpack(event_format, event)
+
+    # ignore init events
+    if js_type & JS_EVENT_INIT:
+        return False
+
+    hex_chars = ""
+
+    if js_type == JS_EVENT_BUTTON:
+        if js_number < len(button_codes) and js_value == 1:
+            hex_chars = button_codes[js_number]
+
+    if js_type == JS_EVENT_AXIS and js_number <= 7:
+        if js_number % 2 == 0:
+            if js_value <= JS_MIN * JS_THRESH:
+                hex_chars = axis_codes[0]
+            if js_value >= JS_MAX * JS_THRESH:
+                hex_chars = axis_codes[1]
+        if js_number % 2 == 1:
+            if js_value <= JS_MIN * JS_THRESH:
+                hex_chars = axis_codes[2]
+            if js_value >= JS_MAX * JS_THRESH:
+                hex_chars = axis_codes[3]
+
+    if hex_chars:
+        for c in hex_chars:
+            fcntl.ioctl(tty_fd, termios.TIOCSTI, c)
+        return True
+
+    return False
+
+def ini_get(key, cfg_file):
+    try:
+        ini_file = open(cfg_file, 'r')
+    except:
+        return ""
+
+    pattern = r'[ |\t]*' + key + r'[ |\t]*=[ |\t]*'
+    value_m = r'"*([^"\|\r]*)"*'
+    value = ""
+    for line in ini_file:
+        if re.match(pattern, line):
+            value = re.sub(pattern + value_m + '.*', r'\1', line)
+            break
+    ini_file.close()
+    return value
+
+def get_button_config():
+    default_codes = ['0x0a', '0x09']
+    configdir = "/opt/retropie/configs/"
+    retroarch_cfg = configdir + "all/retroarch.cfg"
+    joypad_cfg_dir = configdir + "all/retroarch-joypads/"
+    joypad_cfg = ""
+    enter_btn = "a"
+    tab_btn = "b"
+
+    for device in Context().list_devices(DEVNAME=dev_path)
+        dev_name_file = device.get('DEVPATH')
+        dev_name_file = "/sys" + os.path.dirname(dev_name_file) + "/name"
+        tmp = open(dev_name_file, "r")
+        dev_name = tmp.read()
+        tmp.close()
+    if dev_name == "":
+        return default_codes
+
+    if ini_get('menu_swap_ok_cancel_buttons', retroarch_cfg) == 'true':
+        enter_btn = "b"
+        tab_btn = "a"
+
+    for i in os.listdir(joypad_cfg_dir):
+        if i.endswith(".cfg"):
+            with open(joypad_cfg_dir + i, "r") as tmp
+            for line in tmp:
+                if re.match(r'[ |\t]*input_device.*'+ dev_name, line):
+                    joypad_cfg = tmp.name
+                    break
+    if joypad_cfg == "":
+        return default_codes
+    if ini_get('input_device', joypad_cfg) != dev_name:
+
+signal.signal(signal.SIGINT, signal_handler)
+
+button_codes = []
+axis_codes = []
+
+curses.setupterm()
+
+i = 0
+for arg in sys.argv[2:]:
+    chars = get_hex_chars(arg)
+    if i < 4:
+        axis_codes.append(chars)
+    else:
+        button_codes.append(chars)
+    i += 1
+
+if len(button_codes) == 0:
+    for tmp_dev in get_devices():
+        button_codes = get_button_config(tmp_dev)
+
+event_format = 'IhBB'
+event_size = struct.calcsize(event_format)
+
+try:
+    tty_fd = open('/dev/tty', 'w')
+except:
+    print 'Unable to open /dev/tty'
+    sys.exit(1)
+
+js_fds = []
+rescan_time = time.time()
+while True:
+    if not js_fds:
+        js_devs, js_fds = open_devices()
+        if js_fds:
+            i = 0
+            current = time.time()
+            js_last = [None] * len(js_fds)
+            for js in js_fds:
+                js_last[i] = current
+                i += 1
+        else:
+            time.sleep(1)
+    else:
+        i = 0
+        for fd in js_fds:
+            event = read_event(fd)
+            if event:
+                if time.time() - js_last[i] > JS_REP:
+                    if process_event(event):
+                        js_last[i] = time.time()
+            elif event == False:
+                close_fds(js_fds)
+                js_fds = []
+                break
+            i += 1
+
+    if time.time() - rescan_time > 2:
+        rescan_time = time.time()
+        if cmp(js_devs, get_devices()):
+            close_fds(js_fds)
+            js_fds = []
+
+    time.sleep(0.01)
