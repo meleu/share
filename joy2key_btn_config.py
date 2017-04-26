@@ -25,7 +25,7 @@ def get_btn_num(btn, cfg):
     return num
 
 
-def get_button_config(dev_path):
+def get_button_codes(dev_path):
     btn_codes = []
     default_codes = ['0x0a', '0x09']
     configdir = "/opt/retropie/configs/"
@@ -82,5 +82,5 @@ def get_button_config(dev_path):
 
 
 codes = []
-codes = get_button_config(sys.argv[1])
+codes = get_button_codes(sys.argv[1])
 print codes
