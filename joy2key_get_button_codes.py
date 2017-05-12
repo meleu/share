@@ -17,7 +17,6 @@ def ini_get(key, cfg_file):
 
 
 def get_btn_num(btn, cfg):
-    for file in cfg, "
     num = ini_get('input_' + btn + '_btn', cfg)
     if num: return num
     num = ini_get('input_player1_' + btn + '_btn', cfg)
