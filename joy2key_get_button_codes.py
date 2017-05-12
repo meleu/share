@@ -17,11 +17,11 @@ def ini_get(key, cfg_file):
 
 
 def get_btn_num(btn, cfg):
+    for file in cfg, "
     num = ini_get('input_' + btn + '_btn', cfg)
-    if num == "":
-        num = ini_get('input_player1_' + btn + '_btn', cfg)
-        if num == "":
-            return 1
+    if num: return num
+    num = ini_get('input_player1_' + btn + '_btn', cfg)
+    if num: return num
     return num
 
 
@@ -42,7 +42,7 @@ def get_button_codes(dev_path):
         for line in open(dev_name_file, "r"):
             dev_name = line.rstrip('\n')
             break
-    if dev_name == "":
+    if not dev_name:
         return default_codes
     
     if ini_get('menu_swap_ok_cancel_buttons', retroarch_cfg) == "true":
@@ -54,7 +54,7 @@ def get_button_codes(dev_path):
             if ini_get('input_device', js_cfg_dir + f) == dev_name:
                 js_cfg = js_cfg_dir + f
                 break
-    if js_cfg == "":
+    if not js_cfg:
         return default_codes
 
     
