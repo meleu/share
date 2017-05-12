@@ -16,25 +16,26 @@ def ini_get(key, cfg_file):
     return value
 
 
-def get_btn_num(btn, cfg):
-    num = ini_get('input_' + btn + '_btn', cfg)
-    if num: return num
-    num = ini_get('input_player1_' + btn + '_btn', cfg)
-    if num: return num
-    return num
+def get_btn_num(btn, config_file):
+    for cfg in config_file, "/opt/retropie/configs/all/retroarch.cfg":
+        num = ini_get('input_' + btn + '_btn', cfg)
+        if num: return num
+        num = ini_get('input_player1_' + btn + '_btn', cfg)
+        if num: return num
+    return ""
 
 
 def get_button_codes(dev_path):
-    btn_codes = []
-    default_codes = ['0x0a', '0x09']
-    configdir = "/opt/retropie/configs/"
-    retroarch_cfg = configdir + "all/retroarch.cfg"
-    js_cfg_dir = configdir + "all/retroarch-joypads/"
-    js_cfg = ""
+    retroarch_cfg = "/opt/retropie/configs/all/retroarch.cfg"
+    js_cfg_dir = "/opt/retropie/configs/all/retroarch-joypads/"
     enter_btn = "a"
     tab_btn = "b"
+    btn_codes = []
+    default_codes = ['\n', '\t']
+    js_cfg = ""
     dev_name = ""
-    
+
+    # getting joystick name
     for device in Context().list_devices(DEVNAME=dev_path):
         dev_name_file = device.get('DEVPATH')
         dev_name_file = '/sys' + os.path.dirname(dev_name_file) + '/name'
@@ -43,11 +44,8 @@ def get_button_codes(dev_path):
             break
     if not dev_name:
         return default_codes
-    
-    if ini_get('menu_swap_ok_cancel_buttons', retroarch_cfg) == "true":
-        enter_btn = "b"
-        tab_btn = "a"
 
+    # getting retroarch config file for joystick
     for f in os.listdir(js_cfg_dir):
         if f.endswith(".cfg"):
             if ini_get('input_device', js_cfg_dir + f) == dev_name:
@@ -56,24 +54,27 @@ def get_button_codes(dev_path):
     if not js_cfg:
         return default_codes
 
-    
+    # getting configs for "a" and "b" buttons
+    if ini_get('menu_swap_ok_cancel_buttons', retroarch_cfg) == "true":
+        enter_btn = "b"
+        tab_btn = "a"
     enter_btn_num = get_btn_num(enter_btn, js_cfg)
-    if enter_btn_num == "":
+    if not enter_btn_num:
         return default_codes
     tab_btn_num = get_btn_num(tab_btn, js_cfg)
-    if tab_btn_num == "" or tab_btn_num == enter_btn_num:
+    if not tab_btn_num or tab_btn_num == enter_btn_num:
         return default_codes
 
     enter_btn_num = int(enter_btn_num)
     tab_btn_num = int(tab_btn_num)
 
+    # building the button codes list
     biggest_num = tab_btn_num if tab_btn_num > enter_btn_num else enter_btn_num
-    
     for i in range(biggest_num + 1):
         if i == enter_btn_num:
-            btn_codes.append("0x0a")
+            btn_codes.append('\n')
         elif i == tab_btn_num:
-            btn_codes.append("0x09")
+            btn_codes.append('\t')
         else:
             btn_codes.append("")
         
