@@ -5,12 +5,6 @@ dialog --backtitle "W A R N I N G !" --title " WARNING! " \
     15 75 2>&1 > /dev/tty \
     || exit
 
-
-function dialogMsg() {
-    dialog --no-mouse --backtitle "$BACKTITLE" --msgbox "$@" 20 70 2>&1 > /dev/tty
-}
-
-
 form=( $(dialog --form "Enter the repository URL and the branch name of the emulationstation you want to compile and install"  17 75 5 \
     "URL    :" 1 1 "https://github.com/RetroPie/EmulationStation" 1 10 80 0 \
     "branch :" 2 1 "master" 2 10 30 0 \
