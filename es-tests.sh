@@ -1,4 +1,15 @@
 #!/usr/bin/env bash
+# es-tests.sh
+#############
+# This script lets you install a non-official emulationstation mod in RetroPie.
+# It is for those who want to test and help devs with feedback.
+#
+# If you want to create a list of repositories and branches to choose in the script
+# just create a file named "es-repos.txt" with the repository URL followed by space
+# followed by branchName. Example:
+# https://github.com/RetroPie/EmulationStation master
+#
+# meleu - 23-may-2017
 
 REPO_FILE="es-repos.txt"
 
