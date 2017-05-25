@@ -42,15 +42,15 @@ if [[ -s "$REPO_FILE" ]]; then
     if [[ "$choice" == 1 ]]; then
         i=1
         while read -r repo branch; do
-            options+=( $((i++)) "$repo - $branch" )
+            options+=( $((i++)) "$repo ~ $branch" )
         done < "$REPO_FILE"
 
         while true; do
             choice=$(dialog --menu "Choose an ES repository/branch." 17 75 10 "${options[@]}" 2>&1 > /dev/tty) \
             || exit
 
-            repo=$(echo "${options[2*choice-1]}" | tr -d ' ' | cut -d- -f1)
-            branch=$(echo "${options[2*choice-1]}" | tr -d ' ' | cut -d- -f2)
+            repo=$(echo "${options[2*choice-1]}" | tr -d ' ' | cut -d'~' -f1)
+            branch=$(echo "${options[2*choice-1]}" | tr -d ' ' | cut -d'~' -f2)
 
             dialog --yesno "Are you sure you want to install emulationstation branch \"$branch\" from \"$repo\"?" 15 75 2>&1 > /dev/tty \
             || continue
