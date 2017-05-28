@@ -21,7 +21,7 @@ RP_PACKAGES_SH="$RP_SETUP_DIR/retropie_packages.sh"
 RP_SUPPLEMENTARY_DIR="/opt/retropie/supplementary"
 
 # TESTERS: comment the line below if you don't want to see that warning message.
-dialog --backtitle "W A R N I N G !" --title " WARNING! " --yesno "\nThis script lets you install a non-official emulationstation mod in RetroPie. It is for those who want to test and help devs with feedback.\n\nBear in mind that many of those mods are still in development, and you need to know how to fix things if something break!\n\n\nDo you want to proceed?" 15 75 2>&1 > /dev/tty || exit
+dialog --backtitle "W A R N I N G !" --title " WARNING! " --yesno "\nThis script lets you install a non-official emulationstation mod in RetroPie. It is for those who want to test and help devs with feedback.\n\nBear in mind that many of those mods are still in development and you will need to know how to fix things if something break!\n\n\nDo you want to proceed?" 15 75 2>&1 > /dev/tty || exit
 
 
 # dialog functions ##########################################################
@@ -151,7 +151,7 @@ function build_es() {
     rpSwap on 512
     cmake . -DFREETYPE_INCLUDE_DIRS=/usr/include/freetype2/ || ret=1
     # following RetroPie user Hex's suggestion [https://retropie.org.uk/forum/post/81034]
-    dialogYesNo "We are ready to compile ${developer}'s \"$branch\" ES branch.\n\nWould you like to ommit the 'make clean' before 'make'?\n(compilation will be really faster)" \
+    dialogYesNo "We are ready to compile ${developer}'s \"$branch\" ES branch.\n\nWould you like to omit the 'make clean' before 'make'?\n(compilation will be much faster)" \
     || make clean
     make || ret=1
     rpSwap off
@@ -249,7 +249,7 @@ function add_repo_branch() {
     local form=()
     local new_repo="$REPO_URL_TEMPLATE"
     local new_branch
-    
+
     while true; do
         form=( $(dialog --form "Enter the ES repository URL and the branch name."  17 75 5 \
             "URL    :" 1 1 "$new_repo"   1 10 80 0 \
@@ -301,7 +301,7 @@ function set_default_es_menu() {
             options+=( $((i++)) "$es_branch" )
         done
 
-        choice=$(dialogMenu "List of installed ES branches on \"$RP_SUPPLEMENTARY_DIR\".\n\nWhich one you want to set as the default emulationstation?" "${options[@]}") \
+        choice=$(dialogMenu "List of installed ES branches on \"$RP_SUPPLEMENTARY_DIR\".\n\nWhich one do you want to set as the default emulationstation?" "${options[@]}") \
         || return 1
         es_branch="${options[2*choice-1]}"
 
@@ -347,7 +347,7 @@ function remove_installed_es_menu() {
             return 1
         fi
 
-        choice=$(dialogMenu "List of installed unofficial ES branches on \"$RP_SUPPLEMENTARY_DIR\".\n\nWhich one you want to uninstall?" "${options[@]}") \
+        choice=$(dialogMenu "List of installed unofficial ES branches on \"$RP_SUPPLEMENTARY_DIR\".\n\nWhich one would you like to uninstall?" "${options[@]}") \
         || return 1
         es_branch="${options[2*choice-1]}"
 
