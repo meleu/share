@@ -79,7 +79,7 @@ function main_menu() {
             B "Build an ES repo/branch from the list" \
             E "Edit the ES repo/branch list" \
             C "Choose an installed ES branch to be the default" \
-            R "Remove an installed ES branch" \
+            R "Remove an installed unofficial ES branch" \
             U "Update \"$0\" script" \
             2>&1 > /dev/tty)
 
