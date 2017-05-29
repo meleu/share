@@ -339,7 +339,7 @@ function set_default_es_menu() {
 
 
 function get_installed_branches() {
-    local installed_branches=( $(find "$RP_SUPPLEMENTARY_DIR" -type f -name emulationstation.sh) )
+    local installed_branches=( $(find "$RP_SUPPLEMENTARY_DIR" -type f -name emulationstation.sh ! -path '*/configscripts/*') )
     local b
     for b in "${installed_branches[@]}"; do
         basename "$(dirname "$b")"
@@ -356,8 +356,15 @@ function remove_installed_es_menu() {
     while true; do
         i=1
         for es_branch in $(get_installed_branches); do
+            [[ "$es_branch" == "emulationstation" || "$es_branch" == "emulationstation-kids" ]] \
+            && continue
             options+=( $((i++)) "$es_branch" )
         done
+
+        if [[ -z "${options[@]}" ]]; then
+            dialogMsg "There's no unofficial ES branches installed on \"$RP_SUPPLEMENTARY_DIR\"!"
+            return 1
+        fi
 
         choice=$(dialogMenu "List of installed unofficial ES branches on \"$RP_SUPPLEMENTARY_DIR\".\n\nWhich one would you like to uninstall?" "${options[@]}") \
         || return 1
@@ -370,15 +377,12 @@ function remove_installed_es_menu() {
 
         if rp_scriptmodule_action remove "$es_branch"; then
             if sudo "$RP_PACKAGES_SH" emulationstation configure; then
-                dialogMsg "SUCCESS!\n\nThe \"$es_branch\" ES branch was uninstalled!\nThe official RetroPie ES is now the default emulationstation."
-                return 0
+                dialogMsg "SUCCESS!\n\nThe \"$es_branch\" ES branch was uninstalled!\n\nThe official RetroPie ES is now the default emulationstation."
             else
                 dialogMsg "WARNING!\n\nThe \"$es_branch\" ES branch was uninstalled.\nBut we failed to set the official RetroPie ES as the default emulationstation. You need to sort it."
-                return 2
             fi
         else
             dialogMsg "FAIL!!\n\nFailed to uninstall the \"$es_branch\" ES branch."
-            return 1
         fi
     done
 }
