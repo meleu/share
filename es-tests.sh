@@ -399,8 +399,7 @@ function remove_source_files() {
     if [[ -d "$es_src_dir" ]]; then
         dialogYesNo "Do you want to remove source files from \"$es_src_dir\" too?" \
         && rm -rf "$es_src_dir" \
-        && dialogMsg "Source files from \"$es_src_dir\" has been removed." \
-        || dialogMsg "Failed to remove \"$es_src_dir\"."
+        && dialogMsg "Source files from \"$es_src_dir\" has been removed."
     fi
 }
 
