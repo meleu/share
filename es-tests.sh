@@ -80,7 +80,7 @@ function main_menu() {
             E "Edit the ES repo/branch list" \
             C "Choose an installed ES branch to be the default" \
             R "Remove an installed unofficial ES branch" \
-            U "Update \"$0\" script" \
+            U "Update \"$SCRIPT_NAME\" script" \
             2>&1 > /dev/tty)
 
         case "$choice" in
