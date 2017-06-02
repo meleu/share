@@ -12,7 +12,7 @@
 
 # globals ####################################################################
 
-VERSION="alpha"
+VERSION="beta"
 
 # TESTERS: set NO_WARNING_FLAG to 1 if you don't want that warning message.
 NO_WARNING_FLAG=0
