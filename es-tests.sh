@@ -287,7 +287,7 @@ function add_repo_branch() {
 
 
 function validate_repo_branch() {
-    local repo="$1"
+    local repo="$(echo $1 | sed 's/\.git$//')"
     local branch="$2"
 
     if grep -qi "$repo *$branch" "$REPO_FILE_FULL" ; then
