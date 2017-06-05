@@ -12,7 +12,7 @@
 
 # globals ####################################################################
 
-VERSION="beta"
+VERSION="gamma"
 
 # TESTERS: set NO_WARNING_FLAG to 1 if you don't want that warning message.
 NO_WARNING_FLAG=0
@@ -203,13 +203,19 @@ function rp_scriptmodule_action() {
     local ret=0
 
     [[ -z "$module_id" ]] && module_id=$(basename "$es_src_dir")
+
+    if [[ "$module_id" == emulationstation || "$module_id" == emulationstation-kids ]]; then
+        sudo "$RP_PACKAGES_SH" "$module_id" "$action"
+        return $?
+    fi
+
     scriptmodule="$RP_SUPPLEMENTARY_SRC_DIR/${module_id}.sh"
 
     cat > "$scriptmodule" << _EoF_
 #!/usr/bin/env bash
 
 rp_module_id="$module_id"
-rp_module_desc="${developer}'s EmulationStation $branch branch"
+rp_module_desc="EmulationStation $module_id branch"
 rp_module_section="exp"
 
 function configure_${module_id}() {
@@ -316,6 +322,7 @@ function set_default_es_menu() {
 
     while true; do
         i=1
+        options=()
         for es_branch in $(get_installed_branches); do
             options+=( $((i++)) "$es_branch" )
         done
