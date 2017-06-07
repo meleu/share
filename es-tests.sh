@@ -12,7 +12,7 @@
 
 # globals ####################################################################
 
-VERSION="delta2"
+VERSION="delta3"
 
 # TESTERS: set NO_WARNING_FLAG to 1 if you don't want that warning message.
 NO_WARNING_FLAG=0
@@ -121,12 +121,6 @@ function build_es_branch_menu() {
 
 
 function es_download_build_install() {
-    if [[ ! -s "$RP_HELPERS_SH" ]]; then
-        dialogMsg "Unable to find "$RP_HELPERS_SH".\n\nThe RetroPie-Setup must be installed in your home dir."
-        return 1
-    fi
-    source "$RP_HELPERS_SH"
-
     local developer=$(echo "$repo" | sed "s#.*https://github.com/\([^/]*\)/.*#\1#")
     local es_src_dir=$(friendly_repo_branch_name)
     local es_install_dir="${RP_SUPPLEMENTARY_DIR}/$es_src_dir"
@@ -452,6 +446,33 @@ function git_pull_or_clone() {
     else
         git clone --recursive --depth 1 --branch "$branch" "$repo" "$dir" || return 1
     fi
+}
+
+
+# borrowed code from RetroPie-Setup/scriptmodules/helpers.sh
+function rpSwap() {
+    local command=$1
+    local swapfile="/tmp/swap"
+    case $command in
+        on)
+            rpSwap off
+            local memory=$(free -t -m | awk '/^Total:/{print $2}')
+            local needed=$2
+            local size=$((needed - memory))
+            if [[ $size -ge 0 ]]; then
+                echo "Adding $size MB of additional swap"
+                fallocate -l ${size}M "$swapfile"
+                chmod 600 "$swapfile"
+                mkswap "$swapfile"
+                sudo swapon "$swapfile"
+            fi
+            ;;
+        off)
+            echo "Removing additional swap"
+            sudo swapoff "$swapfile" 2>/dev/null
+            rm -f "$swapfile"
+            ;;
+    esac
 }
 
 
