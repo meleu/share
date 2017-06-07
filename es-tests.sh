@@ -12,7 +12,7 @@
 
 # globals ####################################################################
 
-VERSION="gamma"
+VERSION="delta"
 
 # TESTERS: set NO_WARNING_FLAG to 1 if you don't want that warning message.
 NO_WARNING_FLAG=0
@@ -136,7 +136,13 @@ function es_download_build_install() {
     || return
 
     dialogInfo "Downloading source files for ${developer}'s $branch ES branch..."
-    gitPullOrClone "$es_src_dir" "$repo" "$branch"
+    if ! gitPullOrClone "$es_src_dir" "$repo" "$branch"; then
+        rm -rf "$es_src_dir"
+        if ! gitPullOrClone "$es_src_dir" "$repo" "$branch"; then
+            dialogMsg "Failed to download ${developer}'s $branch ES branch.\n\nPlease, check your connection and try again." 
+            return 1
+        fi
+    fi
 
     dialogInfo "Building ${developer}'s $branch ES branch..."
     if ! build_es; then
