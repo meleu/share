@@ -12,7 +12,7 @@
 
 # globals ####################################################################
 
-VERSION="delta"
+VERSION="delta2"
 
 # TESTERS: set NO_WARNING_FLAG to 1 if you don't want that warning message.
 NO_WARNING_FLAG=0
@@ -136,12 +136,9 @@ function es_download_build_install() {
     || return
 
     dialogInfo "Downloading source files for ${developer}'s $branch ES branch..."
-    if ! gitPullOrClone "$es_src_dir" "$repo" "$branch"; then
-        rm -rf "$es_src_dir"
-        if ! gitPullOrClone "$es_src_dir" "$repo" "$branch"; then
-            dialogMsg "Failed to download ${developer}'s $branch ES branch.\n\nPlease, check your connection and try again." 
-            return 1
-        fi
+    if ! git_pull_or_clone "$es_src_dir" "$repo" "$branch"; then
+        dialogMsg "Failed to download ${developer}'s $branch ES branch source code.\n\nCheck your connection and try again."
+        return 1
     fi
 
     dialogInfo "Building ${developer}'s $branch ES branch..."
@@ -437,6 +434,26 @@ function update_script() {
     [[ -x "$SCRIPT_DIR/$SCRIPT_NAME" ]] && exec "$SCRIPT_DIR/$SCRIPT_NAME" --no-warning
     return 1
 }
+
+
+function git_pull_or_clone() {
+    local dir="$1"
+    local repo="$2"
+    local branch="$3"
+    [[ -z "$branch" ]] && branch="master"
+
+    if [[ -d "$dir/.git" ]]; then
+        pushd "$dir" > /dev/null
+        if ! git pull; then
+            git merge --abort && git pull -X theirs || return 1
+        fi
+        git submodule update --init --recursive || return 1
+        popd > /dev/null
+    else
+        git clone --recursive --depth 1 --branch "$branch" "$repo" "$dir" || return 1
+    fi
+}
+
 
 # START HERE #################################################################
 
