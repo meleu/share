@@ -16,8 +16,8 @@ USAGE="Usage:
 $0 /path/to/custom/system/directory
 "
 
-if [[ -z "$CUSTOM_SYSTEM_DIR" ]]; then
-    echo "ERROR: missing argument." >&2
+if [[ -d "$CUSTOM_SYSTEM_DIR" ]]; then
+    echo "ERROR: you must give a directory as argument." >&2
     echo "$USAGE" >&2
     exit 1
 fi
