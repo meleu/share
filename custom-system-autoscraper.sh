@@ -23,7 +23,10 @@ if [[ -z "$CUSTOM_SYSTEM_DIR" ]]; then
 fi
 
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-    echo "This script gets all the symbolic links in a custom ES system directory and tries to create a gamelist.xml based on already existent metadata, boxart, marquee, and video."
+    echo "This script gets all the symbolic links in a custom ES system directory and"
+    echo "tries to create a gamelist.xml based on already existent metadata, boxart,"
+    echo "marquee, and video."
+    echo
     echo "More info here: https://retropie.org.uk/forum/post/84125"
     echo
     echo "$USAGE"
