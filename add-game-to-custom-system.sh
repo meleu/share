@@ -68,7 +68,7 @@ for file in "$@"; do
         echo "WARNING: ignoring \"$file\": failed to create symbolic link."
         continue
     fi
-    echo "\"$file\": the link has been created: $symlink_full"
+    echo "\"$rom\": the link has been created: $symlink_full"
 
     # looking for the system's gamelist.xml
     # more details about these files here:
