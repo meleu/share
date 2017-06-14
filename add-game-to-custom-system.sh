@@ -2,9 +2,8 @@
 # add-game-to-custom-system.sh
 ##############################
 #
-# This script gets all the symbolic links in a custom ES system directory and
-# tries to create a gamelist.xml based on already existent metadata, boxart,
-# marquee, and video.
+# This script creates symbolic links for a custom ES system and tries to create
+# a gamelist.xml based on already existent metadata, boxart, marquee, and video.
 #
 # More info here: 
 # https://retropie.org.uk/forum/post/84125
@@ -13,17 +12,15 @@
 
 CUSTOM_SYSTEM_DIR="$2"
 CUSTOM_GAMELIST="$CUSTOM_SYSTEM_DIR/gamelist.xml"
-USAGE="Usage:
-$0 -d /path/to/custom/system/directory rom1 [rom2 [romN...]]
-"
+USAGE="
+Usage:
+$0 -d /path/to/custom/system/directory rom1 [rom2 [romN...]]"
 
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-    echo "This script gets all the symbolic links in a custom ES system directory and"
-    echo "tries to create a gamelist.xml based on already existent metadata, boxart,"
-    echo "marquee, and video."
+    echo "This script creates symbolic links for a custom ES system and tries to create"
+    echo "a gamelist.xml based on already existent metadata, boxart, marquee, and video."
     echo
     echo "More info here: https://retropie.org.uk/forum/post/84125"
-    echo
     echo "$USAGE"
     exit 0
 fi
@@ -34,8 +31,8 @@ if [[ "$1" != '-d' ]]; then
     exit 1
 fi
 
-if [[ -d "$CUSTOM_SYSTEM_DIR" ]]; then
-    echo "ERROR: \"$CUSTOM_SYSTEM_DIR\" must be a directory." >&2
+if [[ ! -d "$CUSTOM_SYSTEM_DIR" ]]; then
+    echo "ERROR: \"$CUSTOM_SYSTEM_DIR\" is NOT a directory." >&2
     echo "$USAGE" >&2
     exit 1
 fi
@@ -43,8 +40,8 @@ fi
 shift 2
 
 if [[ "$#" -eq 0 ]]; then
-    echo "ERROR: missing rom file(s) as argument." &>2
-    echo "$USAGE" &>2
+    echo "ERROR: missing rom file(s) as argument." >&2
+    echo "$USAGE" >&2
     exit 1
 fi
 
@@ -52,6 +49,8 @@ fi
 temp_gamelist=$(mktemp gamelist.XXX)
 
 for file in "$@"; do
+    [[ "$file" == gamelist.xml ]] && continue
+
     rom_full="$(readlink -e "$file")"
     if [[ ! -s "$rom_full" ]]; then
         echo "WARNING: ignoring \"$file\": file not found or is zero-length."
@@ -59,17 +58,17 @@ for file in "$@"; do
     fi
 
     rom="$(basename "$rom_full")"
-    symlink_full="$CUSTOM_SYSTEM_DIR/$rom"
+    system_dir="$(echo "$rom_full" | sed 's|\(.*/RetroPie/roms/[^/]*\).*|\1|')"
+    system=$(basename "$system_dir")
+    symlink="${rom%.*}-${system}.${rom##*.}"
+    symlink_full="$CUSTOM_SYSTEM_DIR/$symlink"
 
     ln -s "$rom_full" "$symlink_full"
     if [[ "$?" -ne 0 ]]; then
         echo "WARNING: ignoring \"$file\": failed to create symbolic link."
         continue
     fi
-    echo "The link for \"$file\" has been created: $symlink_full"
-
-    system_dir="$(echo "$rom_full" | sed 's|\(.*/RetroPie/roms/[^/]*\).*|\1|')"
-    system=$(basename "$system_dir")
+    echo "\"$file\": the link has been created: $symlink_full"
 
     # looking for the system's gamelist.xml
     # more details about these files here:
