@@ -7,17 +7,24 @@
 #
 # meleu - 2017/Jun
 
+DIRECTORY="$HOME/RetroPie"
+
 readonly SCRIPT_DIR="$(dirname "$0")"
 readonly SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_URL="https://raw.githubusercontent.com/meleu/share/master/fullpath-gamelist.sh"
+
 readonly HELP="
 Usage:
 $0 [OPTIONS] gamelist.xml
 
 The OPTIONS are:
 
--h|--help       print this message and exit
--u|--update     update the script and exit
+-h|--help                       print this message and exit.
+
+-u|--update                     update the script and exit.
+
+-d|--directory  DIRECTORY       look for files in DIRECTORY.
+
 "
 
 
@@ -37,6 +44,21 @@ function update_script() {
 }
 
 
+function fullpath() {
+    [[ -z "$1" ]] && return 1
+
+    local element="$1"
+    local rom
+    local rom_full
+
+    while read -r file; do
+        rom="$(basename "$file")"
+        find "$DIRECTORY"
+        echo "$rom"
+    done < <(xmlstarlet sel -t -v "/gameList/game/$element" "$GAMELIST"; echo)
+}
+
+
 case "$1" in
     -h|--help)
         echo "$HELP" >&2
@@ -49,12 +71,21 @@ case "$1" in
         fi
         exit 1
         ;;
+    -d|--directory)
+        shift
+        DIRECTORY="$1"
+        if [[ ! -d "$DIRECTORY" ]]; then
+            echo "ERROR: \"$DIRECTORY\": invalid directory." >&2
+            exit 1
+        fi
+        shift
+        ;;
     '')
         echo "ERROR: missing gamelist.xml" >&2
         echo "$HELP" >&2
         exit 1
         ;;
-    *)
+    -*)
         echo "ERROR: \"$1\": invalid option" >&2
         echo "$HELP" >&2
         exit 1
@@ -63,3 +94,9 @@ esac
 
 readonly GAMELIST="$1"
 
+if [[ ! -f "$GAMELIST" ]]; then
+    echo "ERROR: \"$GAMELIST\": file not found." >&2
+    exit 1
+fi
+
+fullpath path
