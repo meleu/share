@@ -3,7 +3,7 @@
 ##############################
 #
 # This script creates symbolic links for a custom ES system and tries to create
-# a gamelist.xml based on already existent metadata, boxart, marquee, and video.
+# a gamelist.xml based on already existing metadata, boxart, marquee, and video.
 #
 # More info here: 
 # https://retropie.org.uk/forum/post/84125
@@ -18,7 +18,7 @@ $0 -d /path/to/custom/system/directory rom1 [rom2 [romN...]]"
 
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
     echo "This script creates symbolic links for a custom ES system and tries to create"
-    echo "a gamelist.xml based on already existent metadata, boxart, marquee, and video."
+    echo "a gamelist.xml based on already existing metadata, boxart, marquee, and video."
     echo
     echo "More info here: https://retropie.org.uk/forum/post/84125"
     echo "$USAGE"
@@ -49,7 +49,7 @@ fi
 temp_gamelist=$(mktemp gamelist.XXX)
 
 for file in "$@"; do
-    [[ "$file" == gamelist.xml ]] && continue
+    [[ "$file" == *.xml || "$file" == *.srm ]] && continue
 
     rom_full="$(readlink -e "$file")"
     if [[ ! -s "$rom_full" ]]; then
