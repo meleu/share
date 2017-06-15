@@ -53,7 +53,7 @@ function fullpath() {
 
     while read -r file; do
         rom="$(basename "$file")"
-        find "$DIRECTORY"
+#        find "$DIRECTORY"
         echo "$rom"
     done < <(xmlstarlet sel -t -v "/gameList/game/$element" "$GAMELIST"; echo)
 }
