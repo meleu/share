@@ -23,7 +23,7 @@ The OPTIONS are:
 
 -u|--update                     update the script and exit.
 
--d|--directory  DIRECTORY       look for files in DIRECTORY.
+-d|--directory DIRECTORY        look for files in DIRECTORY.
 
 "
 
@@ -50,12 +50,23 @@ function fullpath() {
     local element="$1"
     local rom
     local rom_full
+    local gamelist_temp1="$(mktemp /tmp/gamelist.XXX)"
+    local gamelist_temp2="$(mktemp /tmp/gamelist.XXX)"
+
+    cat "$GAMELIST" > "$gamelist_temp1"
 
     while read -r file; do
         rom="$(basename "$file")"
-#        find "$DIRECTORY"
-        echo "$rom"
+        rom_full="$(find "$DIRECTORY" -type f -name "$rom" -print -quit)"
+        [[ -z "$rom_full" ]] && continue
+
+        xmlstarlet ed -u "/gameList/game[contains(path,\"$rom\")]/path" -v "$rom_full" "$gamelist_temp1" > "$gamelist_temp2"
+        cat "$gamelist_temp2" > "$gamelist_temp1"
+        echo "Updated entry for \"$rom\"."
     done < <(xmlstarlet sel -t -v "/gameList/game/$element" "$GAMELIST"; echo)
+
+    cat "$gamelist_temp1" > "$GAMELIST"
+    rm -f "$gamelist_temp1" "$gamelist_temp2"
 }
 
 
