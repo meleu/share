@@ -23,7 +23,8 @@ The OPTIONS are:
 
 -u|--update                     update the script and exit.
 
--d|--directory DIRECTORY        look for files in DIRECTORY.
+-d|--directory DIRECTORY        look for files in DIRECTORY
+                                (default: \"$DIRECTORY\").
 
 "
 
