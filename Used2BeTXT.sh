@@ -35,7 +35,7 @@ function update_script() {
             rm -f "/tmp/$SCRIPT_NAME"
             exit 0
         fi
-        err_msg=$(cp "/tmp/$SCRIPT_NAME" "$SCRIPT_DIR/$SCRIPT_NAME" 2>&1) \
+        err_msg=$(mv "/tmp/$SCRIPT_NAME" "$SCRIPT_DIR/$SCRIPT_NAME" 2>&1) \
         || err_flag=1
     else
         err_flag=1
