@@ -30,7 +30,7 @@ function update_script() {
     local err_msg
 
     if err_msg=$(wget "$SCRIPT_URL" -O "/tmp/$SCRIPT_NAME" 2>&1); then
-        if diff "$SCRIPT_FULL" "/tmp/$SCRIPT_NAME"; then
+        if diff "$SCRIPT_FULL" "/tmp/$SCRIPT_NAME" 2>/dev/null; then
             echo "You already have the latest version. Nothing changed."
             rm -f "/tmp/$SCRIPT_NAME"
             exit 0
