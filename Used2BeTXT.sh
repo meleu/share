@@ -35,7 +35,7 @@ function update_script() {
             rm -f "/tmp/$SCRIPT_NAME"
             exit 0
         fi
-        err_msg=$(mv "/tmp/$SCRIPT_NAME" "$SCRIPT_DIR/$SCRIPT_NAME" 2>&1) \
+        err_msg=$(mv "/tmp/$SCRIPT_NAME" "$SCRIPT_FULL" 2>&1) \
         || err_flag=1
     else
         err_flag=1
@@ -47,6 +47,7 @@ function update_script() {
         exit 1
     fi
     
+    chmod a+x "$SCRIPT_FULL"
     echo "The script has been successfully updated. You can run it again."
     exit 0
 }
