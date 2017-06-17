@@ -22,6 +22,10 @@ The OPTIONS are:
 -h|--help       print this message and exit.
 
 -u|--update     update the script and exit.
+
+The script gets data from \"synopsis1.txt\" and adds those data in xml format to
+a file named \"PLATFORM_gamelist.txt\", where PLATFORM is the one indicated in
+'Platform:' line in \"synopsis.txt\".
 "
 
 
