@@ -10,11 +10,12 @@
 
 readonly SCRIPT_DIR="$(dirname "$0")"
 readonly SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_FULL="$SCRIPT_DIR/$SCRIPT_NAME"
 readonly SCRIPT_URL="https://raw.githubusercontent.com/meleu/share/master/Used2BeTXT.sh"
 
 readonly HELP="
 Usage:
-$0 [OPTIONS] synopsis1.txt [synopsis2.txt [synopsisN.txt]]
+$0 [OPTIONS] synopsis1.txt [synopsisN.txt ...]
 
 The OPTIONS are:
 
@@ -28,9 +29,17 @@ function update_script() {
     local err_flag=0
     local err_msg
 
-    err_msg=$(wget "$SCRIPT_URL" -O "/tmp/$SCRIPT_NAME" 2>&1) \
-    && err_msg=$(cp "/tmp/$SCRIPT_NAME" "$SCRIPT_DIR/$SCRIPT_NAME" 2>&1) \
-    || err_flag=1
+    if err_msg=$(wget "$SCRIPT_URL" -O "/tmp/$SCRIPT_NAME" 2>&1); then
+        if diff "$SCRIPT_FULL" "/tmp/$SCRIPT_NAME"; then
+            echo "You already have the latest version. Nothing changed."
+            rm -f "/tmp/$SCRIPT_NAME"
+            exit 0
+        fi
+        err_msg=$(cp "/tmp/$SCRIPT_NAME" "$SCRIPT_DIR/$SCRIPT_NAME" 2>&1) \
+        || err_flag=1
+    else
+        err_flag=1
+    fi
 
     if [[ $err_flag -ne 0 ]]; then
         err_msg=$(echo "$err_msg" | tail -1)
