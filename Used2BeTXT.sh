@@ -1,16 +1,26 @@
-#!/bin/bash - 
+#!/usr/bin/env bash
 # Used2BeTXT.sh
 ###############
-
-
-DIRECTORY="$HOME/RetroPie"
+#
+# This script converts synopsis text files to gamelist.xml files.
+#
+# More info in this forum thread: https://retropie.org.uk/forum/post/79022
+#
+# meleu - 2017/Jun
 
 readonly SCRIPT_DIR="$(dirname "$0")"
 readonly SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_URL="https://raw.githubusercontent.com/meleu/share/master/Used2BeTXT.sh"
 
 readonly HELP="
-NEED TO WRITE THE HELP MESSAGE
+Usage:
+$0 [OPTIONS] synopsis1.txt [synopsis2.txt [synopsisN.txt]]
+
+The OPTIONS are:
+
+-h|--help       print this message and exit.
+
+-u|--update     update the script and exit.
 "
 
 
@@ -25,8 +35,11 @@ function update_script() {
     if [[ $err_flag -ne 0 ]]; then
         err_msg=$(echo "$err_msg" | tail -1)
         echo "Failed to update \"$SCRIPT_NAME\": $err_msg" >&2
-        return 1
+        exit 1
     fi
+    
+    echo "The script has been successfully updated. You can run it again."
+    exit 0
 }
 
 
@@ -34,6 +47,28 @@ function get_data() {
     sed -e "/^$1:/!d ; s/^$1: //" "$2"
 }
 
+
+# START HERE #################################################################
+
+case "$1" in
+    -h|--help)
+        echo "$HELP" >&2
+        exit 0
+        ;;
+    -u|--update)
+        update_script
+        ;;
+    '')
+        echo "ERROR: missing synopsis text file." >&2
+        echo "$HELP" >&2
+        exit 1
+        ;;
+    -*)
+        echo "ERROR: \"$1\": invalid option" >&2
+        echo "$HELP" >&2
+        exit 1
+        ;;
+esac
 
 
 for file in "$@"; do
@@ -47,10 +82,10 @@ for file in "$@"; do
     name="$(head -1 "$file")"
     [[ -z "$name" ]] && continue
 
-    # path : ? TODO
-    # image : ? TODO
-    # video : ? TODO
-    # marquee : ? TODO
+    # path : TODO
+    # image : TODO
+    # video : TODO
+    # marquee : TODO
 
     # releasedate : "Release Year"
     releasedate="$(get_data "Release Year" "$file")"
