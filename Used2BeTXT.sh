@@ -23,10 +23,16 @@ The OPTIONS are:
 
 -u|--update     update the script and exit.
 
+--full          generate gamelist.xml using all metadata from \"synopsis1.txt\",
+                including the ones unused for EmulationStation.
+
 The script gets data from \"synopsis1.txt\" and adds those data in xml format to
 a file named \"PLATFORM_gamelist.txt\", where PLATFORM is the one indicated in
 'Platform:' line in \"synopsis.txt\".
 "
+
+FULL_FLAG=0
+
 
 
 function update_script() {
@@ -72,6 +78,10 @@ case "$1" in
     -u|--update)
         update_script
         ;;
+    --full)
+        FULL_FLAG=1
+        shift
+        ;;
     '')
         echo "ERROR: missing synopsis text file." >&2
         echo "$HELP" >&2
@@ -88,6 +98,7 @@ esac
 for file in "$@"; do
     gamelist=$(grep "^Platform: " "$file" | cut -d: -f2 | tr -d ' ' | tr [:upper:] [:lower:])
     [[ -z "$gamelist" ]] && continue
+    [[ "$FULL_FLAG" == 1 ]] && gamelist+="_FULL"
     gamelist+="_gamelist.xml"
 
     [[ -f "$gamelist" ]] || echo "<gameList />" > "$gamelist"
@@ -123,6 +134,20 @@ for file in "$@"; do
     # desc : the content below "______" to the end of file
     desc="$(sed '/^__________/,$!d' "$file" | tail -n +2)"
 
+    if [[ "$FULL_FLAG" == 1 ]]; then
+        region="$(get_data "Region" "$file")"
+        platform="$(get_data "Platform" "$file")"
+        media="$(get_data "Media" "$file")"
+        controller="$(get_data "Controller" "$file")"
+        gametype="$(get_data "Gametype" "$file")"
+        xtrasname="$(get_data "Xtras Name" "$file")"
+        originaltitle="$(get_data "Original Title" "$file")"
+        alternatetitle="$(get_data "Alternate Title" "$file")"
+        hackedby="$(get_data "Hacked by" "$file")"
+        translatedby="$(get_data "Translated by" "$file")"
+        version="$(get_data "Version" "$file")"
+    fi
+
     if [[ $(xmlstarlet sel -t -v "count(/gameList/game[name='$name'])" "$gamelist") -eq 0 ]]; then
         xmlstarlet ed -L -s "/gameList" -t elem -n "game" -v "" \
             -s "/gameList/game[last()]" -t elem -n "name" -v "$name" \
@@ -137,6 +162,22 @@ for file in "$@"; do
             -s "/gameList/game[last()]" -t elem -n "genre" -v "$genre" \
             -s "/gameList/game[last()]" -t elem -n "players" -v "$players" \
             "$gamelist"
+
+        if [[ "$FULL_FLAG" == 1 ]]; then
+            xmlstarlet ed -L \
+                -s "/gameList/game[last()]" -t elem -n "region" -v "$region" \
+                -s "/gameList/game[last()]" -t elem -n "platform" -v "$platform" \
+                -s "/gameList/game[last()]" -t elem -n "media" -v "$media" \
+                -s "/gameList/game[last()]" -t elem -n "controller" -v "$controller" \
+                -s "/gameList/game[last()]" -t elem -n "gametype" -v "$gametype" \
+                -s "/gameList/game[last()]" -t elem -n "xtrasname" -v "$xtrasname" \
+                -s "/gameList/game[last()]" -t elem -n "originaltitle" -v "$originaltitle" \
+                -s "/gameList/game[last()]" -t elem -n "alternatetitle" -v "$alternatetitle" \
+                -s "/gameList/game[last()]" -t elem -n "hackedby" -v "$hackedby" \
+                -s "/gameList/game[last()]" -t elem -n "translatedby" -v "$translatedby" \
+                -s "/gameList/game[last()]" -t elem -n "version" -v "$version" \
+                "$gamelist"
+        fi
     else
         xmlstarlet ed -L \
             -u "/gameList/game[name='$name']/path" -v "$path" \
@@ -150,6 +191,22 @@ for file in "$@"; do
             -u "/gameList/game[name='$name']/genre" -v "$genre" \
             -u "/gameList/game[name='$name']/players" -v "$players" \
             "$gamelist"
+
+        if [[ "$FULL_FLAG" == 1 ]]; then
+            xmlstarlet ed -L \
+                -u "/gameList/game[name='$name']/region" -v "$region" \
+                -u "/gameList/game[name='$name']/platform" -v "$platform" \
+                -u "/gameList/game[name='$name']/media" -v "$media" \
+                -u "/gameList/game[name='$name']/controller" -v "$controller" \
+                -u "/gameList/game[name='$name']/gametype" -v "$gametype" \
+                -u "/gameList/game[name='$name']/xtrasname" -v "$xtrasname" \
+                -u "/gameList/game[name='$name']/originaltitle" -v "$originaltitle" \
+                -u "/gameList/game[name='$name']/alternatetitle" -v "$alternatetitle" \
+                -u "/gameList/game[name='$name']/hackedby" -v "$hackedby" \
+                -u "/gameList/game[name='$name']/translatedby" -v "$translatedby" \
+                -u "/gameList/game[name='$name']/version" -v "$version" \
+                "$gamelist"
+        fi
     fi
 
     echo "\"$file\" data has been added to \"$gamelist\"."
