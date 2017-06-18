@@ -10,6 +10,8 @@
 # 
 # meleu - 2017/Jun
 
+ROMS_DIR="$HOME/RetroPie/roms"
+
 readonly SCRIPT_DIR="$(dirname "$0")"
 readonly SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_FULL="$SCRIPT_DIR/$SCRIPT_NAME"
@@ -30,9 +32,16 @@ same folder as the original file. Nothing changes in the original gamelist.xml.
 $USAGE
 The OPTIONS are:
 
--h|--help       print this message and exit.
+-h|--help           print this message and exit.
 
--u|--update     update the script and exit.
+-u|--update         update the script and exit.
+
+-s|--system SYSTEM  specifies to which system the gamelist.xml file belongs,
+                    e.g.: nes, megadrive. Default: name of the directory where
+                    the file is located.
+
+-d|--directory DIR  specifies the ROMs directory. Default:
+                    $ROMS_DIR
 "
 
 function update_script() {
@@ -63,28 +72,40 @@ function update_script() {
 }
 
 
-case "$1" in
-    -h|--help)
-        echo "$HELP" >&2
-        exit 0
-        ;;
-    -u|--update)
-        update_script
-        ;;
-    '')
-        echo "ERROR: missing gamelist.xml" >&2
-        echo "$HELP" >&2
-        exit 1
-        ;;
-    -*) # yes, files starting with '-' don't work in this script
-        echo "ERROR: \"$1\": invalid option" >&2
-        echo "$HELP" >&2
-        exit 1
-        ;;
-esac
-
-
-roms_dir="$HOME/RetroPie/roms"
+while [[ -n "$1" ]]; do
+    case "$1" in
+        -h|--help)
+            echo "$HELP" >&2
+            exit 0
+            ;;
+        -u|--update)
+            update_script
+            ;;
+        -s|--system)
+            shift
+            CUSTOM_SYSTEM="$1"
+            shift
+            ;;
+        -d|--directory)
+            shift
+            ROMS_DIR="$1"
+            shift
+            ;;
+        '')
+            echo "ERROR: missing gamelist.xml" >&2
+            echo "$HELP" >&2
+            exit 1
+            ;;
+        -*) # yes, files starting with '-' don't work in this script
+            echo "ERROR: \"$1\": invalid option" >&2
+            echo "$HELP" >&2
+            exit 1
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
 
 for file in "$@"; do
     original_gamelist="$(readlink -e "$file")"
@@ -96,16 +117,23 @@ for file in "$@"; do
         continue
     fi
 
-    system=$(basename "$gamelist_dir")
+    system="$CUSTOM_SYSTEM"
+    [[ -z "$system" ]] && system=$(basename "$gamelist_dir")
+    if [[ ! -d "$ROMS_DIR/$system" ]]; then
+        echo "WARNING: \"$ROMS_DIR/$system\": directory not found." >&2
+        echo "You don't have a ROMs folder for a system named \"$system\"." >&2
+        echo "Ignoring \"$original_gamelist\"..." >&2
+        continue
+    fi
 
     cat "$original_gamelist" > "$clean_gamelist"
     while read -r path; do
         full_path="$path"
-        [[ "$path" == ./* ]] && full_path="$roms_dir/$system/$path"
+        [[ "$path" == ./* ]] && full_path="$ROMS_DIR/$system/$path"
         [[ -f "$full_path" ]] && continue
 
         xmlstarlet ed -L -d "/gameList/game[path=\"$path\"]" "$clean_gamelist"
-        echo "The game with <path> = \"$path\" has been removed."
+        echo "The game with <path> = \"$path\" has been removed from xml."
     done < <(xmlstarlet sel -t -v "/gameList/game/path" "$original_gamelist"; echo)
     echo
     echo "The \"$clean_gamelist\" is ready!"
