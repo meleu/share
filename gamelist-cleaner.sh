@@ -130,6 +130,7 @@ for file in "$@"; do
     while read -r path; do
         full_path="$path"
         [[ "$path" == ./* ]] && full_path="$ROMS_DIR/$system/$path"
+        full_path="$(echo "$full_path" | sed 's/&amp;/\&/g')"
         [[ -f "$full_path" ]] && continue
 
         xmlstarlet ed -L -d "/gameList/game[path=\"$path\"]" "$clean_gamelist"
