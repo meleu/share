@@ -12,6 +12,7 @@
 
 readonly SCRIPT_DIR="$(dirname "$0")"
 readonly SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_FULL="$SCRIPT_DIR/$SCRIPT_NAME"
 readonly SCRIPT_URL="https://raw.githubusercontent.com/meleu/share/master/gamelist-cleaner.sh"
 
 readonly USAGE="Usage:
@@ -112,4 +113,3 @@ for file in "$@"; do
     echo "See the difference between file sizes:"
     du -bh "$original_gamelist" "$clean_gamelist"
 done
-
