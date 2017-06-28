@@ -17,7 +17,7 @@ VERSION="delta3"
 # TESTERS: set NO_WARNING_FLAG to 1 if you don't want that warning message.
 NO_WARNING_FLAG=0
 
-SCRIPT_URL="https://raw.githubusercontent.com/meleu/share/master/es-tests.sh"
+SCRIPT_URL="https://raw.githubusercontent.com/meleu/rp-testers/master/es-tests.sh"
 SCRIPT_DIR="$(dirname "$0")"
 SCRIPT_DIR="$(cd "$SCRIPT_DIR" && pwd)"
 SCRIPT_NAME="$(basename "$0")"
