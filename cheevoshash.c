@@ -1,4 +1,24 @@
-/* cheevoshash.c */
+/* cheevoshash.c - A ROM hashes calculator for RetroAchievements.
+ *
+ * USAGE:
+ * cheevoshash rom_file_name.ext
+ *
+ * NOTES:
+ * - The rom MUST be uncompressed.
+ * - The cheevoshash accepts only one file as argument, any
+ *   extra argument will be ignored
+ *
+ * CREDITS:
+ * This code is strongly based on parts of RetroArch code:
+ * https://github.com/libretro/RetroArch
+ *
+ * Many thanks to all libretro/RetroArch team and a special thanks to leiradel
+ * for his work on cheevos.c.
+ *
+ * The MD5 calculation part is based on Alexander Peslyak work and
+ * can also be found here:
+ * http://openwall.info/wiki/people/solar/software/public-domain-source-code/md5
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -553,7 +573,7 @@ int cheevos_print_rom_hashes(const char *path) {
 
     for (i = 0; i < ARRAY_SIZE(finders); i++) {
         if (finders[i].ext_hashes) {
-            /* get the file extension */
+            /* getting the file extension */
             const char *ext = strrchr(path, '.') + 1;
 
             while (ext) {
