@@ -82,8 +82,8 @@ function update_script() {
     exit 0
 }
 
-# Check if their were no parameters
-if [ "$#" -ne 1 ]; then
+# Verify there is at least 1 parameter
+if [ "$#" -eq 0 ]; then
     echo "ERROR: missing gamelist.xml" >&2
     echo "$HELP" >&2
     exit 1
