@@ -160,7 +160,13 @@ for file in "$@"; do
       cat "$original_gamelist" > "$clean_gamelist"
     fi
 
-
+    # Check to see if we have any entires befor we try to loop over them.
+    xml_entries=$(xmlstarlet sel -t -v "/gameList/game/path" "$original_gamelist"; echo)
+    if [[ xml_entries ]]; then
+        echo "No entries found, file is empty."
+        continue
+    fi
+    
     while read -r path; do
         full_path="$path"
         [[ "$path" == ./* ]] && full_path="$ROMS_DIR/$system/$path"
@@ -169,7 +175,7 @@ for file in "$@"; do
 
         xmlstarlet ed -L -d "/gameList/game[path=\"$path\"]" "$clean_gamelist"
         echo "The game with <path> = \"$path\" has been removed from xml."
-    done < <(xmlstarlet sel -t -v "/gameList/game/path" "$original_gamelist"; echo)
+    done <<<xml_entries
     echo
     echo "The \"$clean_gamelist\" is ready!"
     echo
