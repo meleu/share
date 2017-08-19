@@ -82,13 +82,6 @@ function update_script() {
     exit 0
 }
 
-# Verify there is at least 1 parameter
-if [ "$#" -eq 0 ]; then
-    echo "ERROR: missing gamelist.xml" >&2
-    echo "$HELP" >&2
-    exit 1
-fi
-
 while [[ -n "$1" ]]; do
     case "$1" in
         -h|--help)
@@ -114,7 +107,7 @@ while [[ -n "$1" ]]; do
             shift
             ;;
         '')
-            echo "ERROR: missing gamelist.xml" >&2
+            echo "ERROR: missing gamelist.xml parameter" >&2
             echo "$HELP" >&2
             exit 1
             ;;
@@ -129,13 +122,20 @@ while [[ -n "$1" ]]; do
     esac
 done
 
+# Verify there is at least 1 file after all parameters
+if [ "$#" -eq 0 ]; then
+    echo "ERROR: missing gamelist.xml parameter" >&2
+    echo "$HELP" >&2
+    exit 1
+fi
+
 for file in "$@"; do
     original_gamelist="$(readlink -e "$file")"
     clean_gamelist="${original_gamelist}-clean"
     gamelist_dir="$(dirname "$original_gamelist")"
     backup_gamelist="${original_gamelist}-orig-$(date +%s)"
 
-    if [[ ! -s "$original_gamelist" ]] && [ -e "$original_gamelist" ]; then
+    if [[ ! -s "$original_gamelist" ]]; then
         echo "\"$original_gamelist\": file not found or is zero-length. Ignoring..."
         continue
     fi
