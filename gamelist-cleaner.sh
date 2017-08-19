@@ -22,6 +22,10 @@ readonly USAGE="Usage:
 $0 [OPTIONS] [gamelist.xml]...
 "
 
+readonly EXAMPLE="Example:
+$0 ~/RetroPie/roms/nes/gamelist.xml
+"
+
 readonly HELP="
 This script gets a gamelist.xml as input and checks if the path for the games
 leads to an existing file. If the file doesn't exist, the <game> entry will
@@ -31,6 +35,7 @@ The resulting file will be named \"gamelist.xml-clean\" and will be in the
 same folder as the original file. Nothing changes in the original gamelist.xml.
 
 $USAGE
+$EXAMPLE
 The OPTIONS are:
 
 -h|--help           print this message and exit.
