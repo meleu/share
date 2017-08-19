@@ -104,7 +104,6 @@ while [[ -n "$1" ]]; do
         -r|--replace)
             shift
             REPLACE_GAMELIST=true
-            shift
             ;;
         '')
             echo "ERROR: missing gamelist.xml parameter" >&2
