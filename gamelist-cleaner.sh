@@ -77,6 +77,12 @@ function update_script() {
     exit 0
 }
 
+# Check if their were no parameters
+if [ "$#" -ne 1 ]; then
+    echo "ERROR: missing gamelist.xml" >&2
+    echo "$HELP" >&2
+    exit 1
+fi
 
 while [[ -n "$1" ]]; do
     case "$1" in
