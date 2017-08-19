@@ -13,6 +13,8 @@
 
 # Global Variables
 REPLACE_GAMELIST=false
+DO_ALL=false
+GAMELIST_DIR="$HOME./emulationstation/gamelists"
 ROMS_DIR="$HOME/RetroPie/roms"
 
 # Read only Variables
@@ -107,6 +109,12 @@ while [[ -n "$1" ]]; do
             echo "Using replace option"
             echo
             ;;
+        -a|--all)
+            shift
+            DO_ALL=true
+            echo "Cleaning all gamelists!"
+            echo
+            ;;
         '')
             echo "ERROR: missing gamelist.xml parameter" >&2
             echo "$HELP" >&2
@@ -124,13 +132,20 @@ while [[ -n "$1" ]]; do
 done
 
 # Verify there is at least 1 file after all parameters
-if [ "$#" -eq 0 ]; then
+if [ "$#" -eq 0 ] && [ "$DO_ALL" = false ]; then
     echo "ERROR: missing gamelist.xml parameter" >&2
     echo "$HELP" >&2
     exit 1
 fi
 
-for file in "$@"; do
+# Get list of files to use
+gamelist_files="$@"
+
+if [ "$DO_ALL" = true ]; then
+    gamelist_files=$(cd "${GAMELIST_DIR}" && ls -d */)
+fi
+
+for file in gamelist_files; do
     original_gamelist="$(readlink -e "$file")"
     clean_gamelist="${original_gamelist}-clean"
     gamelist_dir="$(dirname "$original_gamelist")"
