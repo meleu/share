@@ -104,6 +104,8 @@ while [[ -n "$1" ]]; do
         -r|--replace)
             shift
             REPLACE_GAMELIST=true
+            echo "Using replace option"
+            echo
             ;;
         '')
             echo "ERROR: missing gamelist.xml parameter" >&2
@@ -157,6 +159,7 @@ for file in "$@"; do
     else
       cat "$original_gamelist" > "$clean_gamelist"
     fi
+
 
     while read -r path; do
         full_path="$path"
