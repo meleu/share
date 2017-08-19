@@ -47,8 +47,8 @@ The OPTIONS are:
 -r|--replace        Force replace the gamelist.xml file (Creates backup of original)
 "
 
-# Variables
-replace_gamelist=false
+# Global Variables
+REPLACE_GAMELIST=false
 
 function update_script() {
     local err_flag=0
@@ -99,7 +99,7 @@ while [[ -n "$1" ]]; do
             ;;
         -r|--replace)
             shift
-            replace_gamelist=true
+            REPLACE_GAMELIST=true
             shift
             ;;
         '')
@@ -142,7 +142,7 @@ for file in "$@"; do
     # Copy original_gamelist to backup_gamelist
     # change clean_gamelist to original_gamelist
     # change original_gamelist to backup_gamelist
-    if [ "$replace_gamelist" = true ]; then
+    if [ "$REPLACE_GAMELIST" = true ]; then
       cat "$original_gamelist" > "$backup_gamelist"
       clean_gamelist="$original_gamelist"
       original_gamelist="$backup_gamelist" # This allows the file size compare to work still
