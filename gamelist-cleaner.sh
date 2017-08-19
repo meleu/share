@@ -151,6 +151,9 @@ for file in "$@"; do
         continue
     fi
 
+    # What file are we working on?
+    echo "Working on: ${original_gamelist}"
+    
     # Kaltinril: If user wants to replace existing gamelist do it.
     if [ "$REPLACE_GAMELIST" = true ]; then
       cat "$original_gamelist" > "$backup_gamelist"
@@ -159,9 +162,6 @@ for file in "$@"; do
     else
       cat "$original_gamelist" > "$clean_gamelist"
     fi
-
-    # What file are we working on?
-    echo "Working on: ${original_gamelist}"
     
     # Check to see if we have any entires befor we try to loop over them.
     xml_entries=$(xmlstarlet sel -t -v "/gameList/game/path" "$original_gamelist"; echo)
