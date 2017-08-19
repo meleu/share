@@ -11,8 +11,11 @@
 # meleu - 2017/Jun
 # kaltinril - 2017-08-19 - Added -r option to replace the existing gameslist
 
+# Global Variables
+REPLACE_GAMELIST=false
 ROMS_DIR="$HOME/RetroPie/roms"
 
+# Read only Variables
 readonly SCRIPT_DIR="$(dirname "$0")"
 readonly SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_FULL="$SCRIPT_DIR/$SCRIPT_NAME"
@@ -51,9 +54,6 @@ The OPTIONS are:
 
 -r|--replace        Force replace the gamelist.xml file (Creates backup of original)
 "
-
-# Global Variables
-REPLACE_GAMELIST=false
 
 function update_script() {
     local err_flag=0
