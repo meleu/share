@@ -139,13 +139,10 @@ for file in "$@"; do
     fi
 
     # Kaltinril: If user wants to replace existing gamelist do it.
-    # Copy original_gamelist to backup_gamelist
-    # change clean_gamelist to original_gamelist
-    # change original_gamelist to backup_gamelist
     if [ "$REPLACE_GAMELIST" = true ]; then
       cat "$original_gamelist" > "$backup_gamelist"
       clean_gamelist="$original_gamelist"
-      original_gamelist="$backup_gamelist" # This allows the file size compare to work still
+      original_gamelist="$backup_gamelist"
     else
       cat "$original_gamelist" > "$clean_gamelist"
     fi
