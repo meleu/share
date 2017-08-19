@@ -135,7 +135,7 @@ for file in "$@"; do
     gamelist_dir="$(dirname "$original_gamelist")"
     backup_gamelist="${original_gamelist}-orig-$(date +%s)"
 
-    if [[ ! -s "$original_gamelist" ]]; then
+    if [[ ! -s "$original_gamelist" ]] && [ -e "$original_gamelist" ]; then
         echo "\"$original_gamelist\": file not found or is zero-length. Ignoring..."
         continue
     fi
