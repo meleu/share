@@ -160,6 +160,9 @@ for file in "$@"; do
       cat "$original_gamelist" > "$clean_gamelist"
     fi
 
+    # What file are we working on?
+    echo "Working on: ${original_gamelist}"
+    
     # Check to see if we have any entires befor we try to loop over them.
     xml_entries=$(xmlstarlet sel -t -v "/gameList/game/path" "$original_gamelist"; echo)
     if [[ xml_entries ]]; then
