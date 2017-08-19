@@ -9,6 +9,7 @@
 # Run the script with '--help' to get more info.
 # 
 # meleu - 2017/Jun
+# kaltinril - 2017-08-19 - Added -r option to replace the existing gameslist
 
 ROMS_DIR="$HOME/RetroPie/roms"
 
@@ -42,7 +43,12 @@ The OPTIONS are:
 
 -d|--directory DIR  specifies the ROMs directory. Default:
                     $ROMS_DIR
+
+-r|--replace        Force replace the gamelist.xml file (Creates backup of original)
 "
+
+# Variables
+replace_gamelist=false
 
 function update_script() {
     local err_flag=0
@@ -91,6 +97,11 @@ while [[ -n "$1" ]]; do
             ROMS_DIR="$1"
             shift
             ;;
+        -r|--replace)
+            shift
+            replace_gamelist=true
+            shift
+            ;;
         '')
             echo "ERROR: missing gamelist.xml" >&2
             echo "$HELP" >&2
@@ -111,6 +122,7 @@ for file in "$@"; do
     original_gamelist="$(readlink -e "$file")"
     clean_gamelist="${original_gamelist}-clean"
     gamelist_dir="$(dirname "$original_gamelist")"
+    backup_gamelist="${original_gamelist}-orig-$(date +%s)"
 
     if [[ ! -s "$original_gamelist" ]]; then
         echo "\"$original_gamelist\": file not found or is zero-length. Ignoring..."
@@ -126,7 +138,18 @@ for file in "$@"; do
         continue
     fi
 
-    cat "$original_gamelist" > "$clean_gamelist"
+    # Kaltinril: If user wants to replace existing gamelist do it.
+    # Copy original_gamelist to backup_gamelist
+    # change clean_gamelist to original_gamelist
+    # change original_gamelist to backup_gamelist
+    if [ "$replace_gamelist" = true ]; then
+      cat "$original_gamelist" > "$backup_gamelist"
+      clean_gamelist="$original_gamelist"
+      original_gamelist="$backup_gamelist" # This allows the file size compare to work still
+    else
+      cat "$original_gamelist" > "$clean_gamelist"
+    fi
+
     while read -r path; do
         full_path="$path"
         [[ "$path" == ./* ]] && full_path="$ROMS_DIR/$system/$path"
