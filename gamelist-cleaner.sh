@@ -136,7 +136,7 @@ for file in "$@"; do
     backup_gamelist="${original_gamelist}-orig-$(date +%s)"
 
     if [[ ! -s "$original_gamelist" ]]; then
-        [[ -z "$original_gamelist"]] && original_gamelist="$file" # Make sure we print the name if the readlink failed to find a file
+        [[ -z "$original_gamelist" ]] && original_gamelist="$file" # Make sure we print the name if the readlink failed to find a file
         echo "\"$original_gamelist\": file not found or is zero-length. Ignoring..."
         continue
     fi
