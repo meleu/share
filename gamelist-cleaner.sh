@@ -23,7 +23,7 @@ $0 [OPTIONS] [gamelist.xml]...
 "
 
 readonly HELP="
-This script gets a gamelist.xml as input and check if the path for the games
+This script gets a gamelist.xml as input and checks if the path for the games
 leads to an existing file. If the file doesn't exist, the <game> entry will
 be deleted and a cleaner gamelist.xml file will be generated.
 
