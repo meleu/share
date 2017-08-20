@@ -142,7 +142,7 @@ fi
 gamelist_files="$@"
 
 if [ "$DO_ALL" = true ]; then
-    gamelist_files=$(cd "$LISTS_DIR}" && ls -d */)
+    gamelist_files=$(cd $LISTS_DIR} && ls -d */)
 fi
 
 for file in $gamelist_files; do
