@@ -142,7 +142,7 @@ fi
 # Get list of files to use
 gamelist_files="$@"
 if [ "$DO_ALL" = true ]; then
-    gamelist_files=$(ls '${LISTS_DIR}/*/gamelist.xml')
+    gamelist_files=$(ls ${LISTS_DIR}/*/gamelist.xml)
 fi
 
 for file in $gamelist_files; do
