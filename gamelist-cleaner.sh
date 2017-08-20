@@ -16,7 +16,7 @@ REPLACE_GAMELIST=false
 DO_ALL=false
 LISTS_DIR="$HOME/.emulationstation/gamelists"
 ROMS_DIR="$HOME/RetroPie/roms"
-__="" # Temporary variable for return from function
+ELIMINATE_BACKUPS=false
 
 # Read only Variables
 readonly SCRIPT_DIR="$(dirname "$0")"
@@ -90,6 +90,14 @@ function update_script() {
     exit 0
 }
 
+function eliminate_backup_files() {
+    backups=$(ls ${LISTS_DIR}/*/gamelist.xml-orig*)
+    for file in $backups; do
+      echo "Removing: $file"
+      rm $file
+    done
+}
+
 while [[ -n "$1" ]]; do
     case "$1" in
         -h|--help)
@@ -125,6 +133,10 @@ while [[ -n "$1" ]]; do
             shift
             LISTS_DIR="$1"
             shift
+            ;;
+        -e|--eliminate)
+            shift
+            ELIMINATE_BACKUPS=true
             ;;
         '')
             echo "ERROR: missing gamelist.xml parameter" >&2
@@ -213,3 +225,8 @@ for file in $gamelist_files; do
     echo
     echo
 done
+
+if [ "$ELIMINATE_BACKUPS" = true ];then
+    Echo "Removing backups...."
+    eliminate_backup_files
+fi
