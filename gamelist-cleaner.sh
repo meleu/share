@@ -84,6 +84,15 @@ function update_script() {
     exit 0
 }
 
+# get_full_path
+# Take a string and assume it's a path, get full path from it
+function get_full_path() {
+    full_path="$1"
+    [[ "$1" == ./* ]] && full_path="$ROMS_DIR/$system/$1"
+    full_path="$(echo "$full_path" | sed 's/&amp;/\&/g')"
+    return $full_path
+}
+
 while [[ -n "$1" ]]; do
     case "$1" in
         -h|--help)
@@ -186,9 +195,7 @@ for file in $gamelist_files; do
     fi
     
     while read -r path; do
-        full_path="$path"
-        [[ "$path" == ./* ]] && full_path="$ROMS_DIR/$system/$path"
-        full_path="$(echo "$full_path" | sed 's/&amp;/\&/g')"
+        full_path=get_full_path "$path"
         [[ -f "$full_path" ]] && continue
 
         xmlstarlet ed -L -d "/gameList/game[path=\"$path\"]" "$clean_gamelist"
