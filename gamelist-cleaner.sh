@@ -153,6 +153,8 @@ fi
 gamelist_files="$@"
 
 if [ "$DO_ALL" = true ]; then
+    get_full_path "$LISTS_DIR"
+    LISTS_DIR="$__"
     gamelist_files=$(cd $LISTS_DIR} && ls -d */)
 fi
 
