@@ -137,6 +137,8 @@ while [[ -n "$1" ]]; do
         -e|--eliminate)
             shift
             ELIMINATE_BACKUPS=true
+            echo "Using eliminate option"
+            echo
             ;;
         '')
             echo "ERROR: missing gamelist.xml parameter" >&2
@@ -227,6 +229,6 @@ for file in $gamelist_files; do
 done
 
 if [ "$ELIMINATE_BACKUPS" = true ];then
-    Echo "Removing backups...."
+    echo "Removing backups...."
     eliminate_backup_files
 fi
