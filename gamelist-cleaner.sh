@@ -92,7 +92,7 @@ function get_full_path() {
     full_path="$1"
     [[ "$1" == ./* ]] && full_path="$ROMS_DIR/$system/$1"
     full_path="$(echo "$full_path" | sed 's/&amp;/\&/g')"
-    return $full_path
+    __=$full_path
 }
 
 while [[ -n "$1" ]]; do
