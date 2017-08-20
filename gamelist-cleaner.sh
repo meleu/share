@@ -189,7 +189,7 @@ for file in $gamelist_files; do
     
     # Check to see if we have any entires befor we try to loop over them.
     xml_entries=$(xmlstarlet sel -t -v "/gameList/game/path" "$original_gamelist"; echo)
-    if [[ xml_entries ]]; then
+    if [[ -z xml_entries ]]; then
         echo "No entries found, file is empty."
         continue
     fi
