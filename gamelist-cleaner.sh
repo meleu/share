@@ -29,7 +29,7 @@ $0 [OPTIONS] [gamelist.xml]...
 "
 
 readonly EXAMPLE="Example:
-$0 ~/RetroPie/roms/nes/gamelist.xml
+$0 ~/.emulationstation/gamelists/nes/gamelist.xml
 "
 
 readonly HELP="
@@ -56,6 +56,11 @@ The OPTIONS are:
                     $ROMS_DIR
 
 -r|--replace        Force replace the gamelist.xml file (Creates backup of original)
+
+-a|--all            Automatically clean all gamelists that exist in lists folder
+
+-l|--gamelist DIR   specifies the gamelist directory.  Default:
+                    $LISTS_DIR
 "
 
 function update_script() {
@@ -116,6 +121,12 @@ while [[ -n "$1" ]]; do
             echo "Cleaning all gamelists!"
             echo
             ;;
+        -l|--list)
+            shift
+            LISTS_DIR="$1"
+            shift
+            ;;
+        -r|--rep
         '')
             echo "ERROR: missing gamelist.xml parameter" >&2
             echo "$HELP" >&2
