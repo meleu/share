@@ -187,7 +187,7 @@ for file in $gamelist_files; do
     
     while read -r path; do
         full_path="$path"
-        [[ "$1" == ./* ]] && full_path="$ROMS_DIR/$system/$1"
+        [[ "$path" == ./* ]] && full_path="$ROMS_DIR/$system/$path"
         full_path="$(echo "$full_path" | sed 's/&amp;/\&/g')"
         [[ -f "$full_path" ]] && continue
 
