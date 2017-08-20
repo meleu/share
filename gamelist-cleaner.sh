@@ -207,6 +207,8 @@ for file in $gamelist_files; do
     xml_entries=$(xmlstarlet sel -t -v "/gameList/game/path" "$original_gamelist")
     if [[ -z $xml_entries ]]; then
         echo "No entries found, file is empty."
+        echo
+        echo
         continue
     fi
     
