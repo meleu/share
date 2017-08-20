@@ -126,7 +126,6 @@ while [[ -n "$1" ]]; do
             LISTS_DIR="$1"
             shift
             ;;
-        -r|--rep
         '')
             echo "ERROR: missing gamelist.xml parameter" >&2
             echo "$HELP" >&2
