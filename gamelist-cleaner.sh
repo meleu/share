@@ -16,6 +16,7 @@ REPLACE_GAMELIST=false
 DO_ALL=false
 LISTS_DIR="$HOME./emulationstation/gamelists"
 ROMS_DIR="$HOME/RetroPie/roms"
+__="" # Temporary variable for return from function
 
 # Read only Variables
 readonly SCRIPT_DIR="$(dirname "$0")"
@@ -86,6 +87,7 @@ function update_script() {
 
 # get_full_path
 # Take a string and assume it's a path, get full path from it
+# Since Bash doesn't have return values, need to use a temporary variable
 function get_full_path() {
     full_path="$1"
     [[ "$1" == ./* ]] && full_path="$ROMS_DIR/$system/$1"
@@ -195,7 +197,8 @@ for file in $gamelist_files; do
     fi
     
     while read -r path; do
-        full_path=get_full_path "$path"
+        get_full_path "$path"
+        full_path="$__"
         [[ -f "$full_path" ]] && continue
 
         xmlstarlet ed -L -d "/gameList/game[path=\"$path\"]" "$clean_gamelist"
