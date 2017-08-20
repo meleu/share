@@ -179,12 +179,13 @@ for file in $gamelist_files; do
     # What file are we working on?
     echo "Working on: ${original_gamelist}"
     
-    # Kaltinril: If user wants to replace existing gamelist do it.
+    # Make backup of gamelist and replace original
     if [ "$REPLACE_GAMELIST" = true ]; then
       cat "$original_gamelist" > "$backup_gamelist"
       clean_gamelist="$original_gamelist"
       original_gamelist="$backup_gamelist"
     else
+      # Leave original alone, create a clean separate file
       cat "$original_gamelist" > "$clean_gamelist"
     fi
     
