@@ -14,7 +14,7 @@
 # Global Variables
 REPLACE_GAMELIST=false
 DO_ALL=false
-GAMELIST_DIR="$HOME./emulationstation/gamelists"
+LISTS_DIR="$HOME./emulationstation/gamelists"
 ROMS_DIR="$HOME/RetroPie/roms"
 
 # Read only Variables
@@ -142,10 +142,10 @@ fi
 gamelist_files="$@"
 
 if [ "$DO_ALL" = true ]; then
-    gamelist_files=$(cd "${GAMELIST_DIR}" && ls -d */)
+    gamelist_files=$(cd "$LISTS_DIR}" && ls -d */)
 fi
 
-for file in gamelist_files; do
+for file in $gamelist_files; do
     original_gamelist="$(readlink -e "$file")"
     clean_gamelist="${original_gamelist}-clean"
     gamelist_dir="$(dirname "$original_gamelist")"
