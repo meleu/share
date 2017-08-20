@@ -199,4 +199,6 @@ for file in $gamelist_files; do
     echo
     echo "See the difference between file sizes:"
     du -bh "$original_gamelist" "$clean_gamelist"
+    echo
+    echo
 done
