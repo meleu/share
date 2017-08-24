@@ -12,6 +12,12 @@
 # 
 # sano - initial code in forum post
 # kaltinril - 2017-08-20 - converted into script with command-line arguments
+#
+# TODO:
+# 1. find every image file (png|jpg) on ~/.emulationstation/downloaded_images/
+# 2. loop every file searching for an occurrence in the respective gamelist.
+# 2.1 if there's no occurrence, delete it.
+
 
 # Global Variables
 REPLACE_GAMELIST=false
@@ -58,6 +64,8 @@ The OPTIONS are:
 
 -u|--update         update the script and exit.
 
+-t|--test           test only, do not actually delete anything.
+
 -i|--images DIR     specifies the IMAGEs directory. Default:
                     $IMAGES_DIR
 
@@ -98,8 +106,8 @@ function print_summary() {
     echo
     echo "Summary of work:"
     echo " - Systems checked: $SYSTEMS_CHECKED"
+    [[ "$TEST_ONLY" == true ]] && echo " ---- TEST ONLY, NO DELETIONS ----"
     echo " - Images deleted:  $IMAGES_DELETED"
-    [ "$TEST_ONLY" = true ] && echo " ---- TEST ONLY, NO DELETIONS ----"
     echo " - Space freed:     $IMAGES_FILESIZE"
 }
 
@@ -116,20 +124,16 @@ while [[ $# -gt 0 ]]; do
         -g|--gamelist)
             shift
             GAMELISTS_DIR="$1"
-            shift
             ;;
         -i|--images)
             shift
             IMAGES_DIR="$1"
-            shift
             ;;
         -t|--test)
-            shift
             TEST_ONLY=true
             echo " ==TESTING MODE=="
             ;;
         -s|summary)
-            shift
             SUMMMARY_ONLY=true
             ;;
         *)
@@ -138,6 +142,7 @@ while [[ $# -gt 0 ]]; do
             exit 1
             ;;
     esac
+    shift
 done
 
 # Loop over all systems in the images folder
@@ -146,8 +151,8 @@ for sys in $IMAGES_DIR/*
     # Extract just the basename
     sys=$(basename "$sys")
     
-    [ "$SUMMMARY_ONLY" = false ] && echo
-    [ "$SUMMMARY_ONLY" = false ] && echo "Working on system: $sys"
+    [[ "$SUMMMARY_ONLY" == false ]] && echo
+    [[ "$SUMMMARY_ONLY" == false ]] && echo "Working on system: $sys"
     ((++SYSTEMS_CHECKED))
     
     # Loop over all the images in the system
@@ -178,14 +183,12 @@ for sys in $IMAGES_DIR/*
         fi
         
         # If the image filename was NOT found in the system's gamelist, delete it
-        if [ "$grep_rc" == "1" ]; then
+        if [[ "$grep_rc" == "1" ]]; then
             ((++IMAGES_DELETED))
             IMAGES_FILESIZE=$((IMAGES_FILESIZE + file_size))
             
-            [ "$SUMMMARY_ONLY" = false ] && echo "Deleting: $file"
-            if [ "$TEST_ONLY" = false ]; then
-                rm "$file"
-            fi
+            [[ "$SUMMMARY_ONLY" == false ]] && echo "Deleting: $file"
+            [[ "$TEST_ONLY" == false ]] && rm "$file"
         fi
     done
 done
