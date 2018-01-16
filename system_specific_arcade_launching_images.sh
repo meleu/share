@@ -1,3 +1,4 @@
+# START of the trick for custom arcade launching images #######################
 function custom_arcade_launching_images() {
     if [[ "$1" != "arcade" ]]; then
         return
@@ -66,3 +67,4 @@ function custom_arcade_launching_images() {
 }
 
 custom_arcade_launching_images "$@"
+# END of the trick for custom arcade launching images #########################
