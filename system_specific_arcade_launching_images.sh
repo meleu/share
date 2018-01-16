@@ -15,10 +15,14 @@ function custom_arcade_launching_images() {
     local ext
 
     # checking if it's mame or fba emulator
-    if grep -q "^$emulator \?=" "$config_dir/mame/emulators.cfg"; then
-        system="mame"
+    if grep -q "^$emulator \?=" "$config_dir/mame-libretro/emulators.cfg"; then
+        system="mame-libretro"
     elif grep -q "^$emulator \?=" "$config_dir/fba/emulators.cfg"; then
         system="fba"
+    elif grep -q "^$emulator \?=" "$config_dir/mame-advmame/emulators.cfg"; then
+        system="mame-advmame"
+    elif grep -q "^$emulator \?=" "$config_dir/mame-mame4all/emulators.cfg"; then
+        system="mame-mame4all"
     else
         return 1 # system not found
     fi
