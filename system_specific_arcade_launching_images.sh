@@ -7,7 +7,7 @@ function custom_arcade_launching_images() {
     local rom_name="$(basename "$3")"
     local rom_no_ext="${rom_name%.*}"
     local arcade_imgs_dir="$HOME/RetroPie/roms/arcade/images"
-    local img_no_ext="$arcade_imgs_dir/$rom_no_ext"
+    local img_no_ext="$arcade_imgs_dir/${rom_no_ext}-launching"
     local img
     local config_dir="/opt/retropie/configs"
     local system
