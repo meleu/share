@@ -94,6 +94,7 @@ function get_episodes_url() {
 }
 
 
+# gets a list of ALL laracasts series, expect a huge list (65+ items)
 function get_all_series() {
     LARACASTS_SERIES=(
         $(wget -q "$LARACASTS_SITE/series" -O - \
@@ -123,6 +124,7 @@ function parse_args() {
         -a|--all-series)
             get_all_series
             ;;
+
         *)
             echo "WARNING: ignoring invalid option '$1'" >&2
             ;;
@@ -143,7 +145,7 @@ function main() {
 
     echo "Which series do you want to download the videos from?"
     select serie in "${LARACASTS_SERIES[@]}" exit; do
-        echo "You have chose \"$serie\"..."
+        echo "You chose \"$serie\"..."
         [[ "$serie" == "exit" ]] && break
 
         episodes=( $(get_episodes_url "$serie") )
