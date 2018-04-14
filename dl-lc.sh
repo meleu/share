@@ -25,8 +25,8 @@ function help_and_exit() {
     echo
     sed '/^#H /!d; s/^#H //' "$0"
     echo
-    echo "When using with no arguments, the script will show a small list of the available"
-    echo "laracasts series and let you choose which one you want to download the videos."
+    echo "When using with no arguments, the script will show a small list of some available"
+    echo "laracasts series and let you choose which one you want to download the videos from."
     echo
     exit 1
 }
