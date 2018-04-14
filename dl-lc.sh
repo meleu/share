@@ -1,6 +1,6 @@
 #!/bin/bash
 # dl-lc.sh
-##################
+##########
 # Using a youtube-dl trick to download laracasts videos.
 #
 # DEPENDENCIES: wget youtube-dl
@@ -162,8 +162,7 @@ function main() {
                 continue
             fi
 
-            echo youtube-dl \
-                -o "$serie/%(title)s-%(id)s.%(ext)s" \
+            youtube-dl -o "laracasts/$serie/%(title)s-%(id)s.%(ext)s" -c \
                 "http://player.vimeo.com/video/$vimeoid" --referer "$episode"
         done
 
