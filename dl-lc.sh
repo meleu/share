@@ -148,8 +148,7 @@ function main() {
         echo "You chose \"$serie\"..."
         [[ "$serie" == "exit" ]] && break
 
-        episodes=( $(get_episodes_url "$serie") )
-        if [[ "${#episodes[@]}" == "0" ]]; then
+        if ! episodes=( $(get_episodes_url "$serie") ); then
             echo "Ooops! Unable to get the episodes list." >&2
             echo "Check your connection and try again." >&2
             continue
@@ -157,9 +156,8 @@ function main() {
 
         for episode in "${episodes[@]}"; do
             echo -e "\nChecking \"$episode\"..."
-            vimeoid="$(get_vimeoid "$episode")"
 
-            if [[ -z "$vimeoid" ]]; then
+            if ! vimeoid="$(get_vimeoid "$episode")"; then
                 echo "Ooops! Looks like this episode isn't free!" >&2
                 continue
             fi
