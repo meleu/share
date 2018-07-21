@@ -218,7 +218,7 @@ for file in $gamelist_files; do
         full_path="$(echo "$full_path" | sed 's/&amp;/\&/g')"
         [[ -f "$full_path" ]] && continue
 
-        xmlstarlet ed -L -d "/gameList/game[path=\"$path\"]" "$clean_gamelist"
+        xmlstarlet ed -L -d "/gameList/game[path=\"$full_path\"]" "$clean_gamelist"
         echo "The game with <path> = \"$path\" has been removed from xml."
     done < <(xmlstarlet sel -t -v "/gameList/game/path" "$original_gamelist"; echo)
     echo
