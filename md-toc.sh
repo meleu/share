@@ -12,7 +12,7 @@
 # https://github.com/thlorenz/anchor-markdown-header/blob/56f77a232ab1915106ad1746b99333bf83ee32a2/anchor-markdown-header.js#L25
 #
 
-INVALID_CHARS="'[]/?!:\`.,()*\";{}+=<>~$|#@&â€“â€”"
+INVALID_CHARS="'[]/?!:\`.,()*\";{}+=<>~$|#@&–—"
 
 toc() {
     local line
