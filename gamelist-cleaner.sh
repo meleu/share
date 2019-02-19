@@ -10,6 +10,7 @@
 # 
 # meleu - 2017/Jun
 # kaltinril - 2017-08-19 - Added -r option to replace the existing gameslist
+# shantigilbert - 2019-02-18 - Fix for filenames with '&' not being removed
 
 # Global Variables
 REPLACE_GAMELIST=false
@@ -200,12 +201,13 @@ for file in $gamelist_files; do
       original_gamelist="$backup_gamelist"
     fi
     
- # use a temp file to convert "&" to "&amp: on the whole gamelist.xml even if the file has both "&" and "&amp;"
-    temp_gamelist="$ROMS_DIR/$system/temp.xml"
-    cat "$original_gamelist" | sed 's/\&/&amp;/g' | sed 's/;amp;/;/g' > "$temp_gamelist"
+    # use a temp file to convert "&" to "&amp: on the whole gamelist.xml even if the file has both "&" and "&amp;"
+    temp_gamelist="/tmp/gamelist-$system.xml"
+    sed 's/\&/&amp;/g; s/;amp;/;/g' "$original_gamelist" > "$temp_gamelist"
     original_gamelist=$(readlink -e "$temp_gamelist")
     cat "$original_gamelist" > "$clean_gamelist"
-    # Check to see if we have any entires before we try to loop over them.
+
+    # Check to see if we have any entries before we try to loop over them.
     xml_entries=$(xmlstarlet sel -t -v "/gameList/game/path" "$original_gamelist")
     if [[ -z $xml_entries ]]; then
         echo "No entries found, file is empty."
@@ -215,8 +217,8 @@ for file in $gamelist_files; do
     fi
     
     while read -r path; do
-        #it seems xmlstarlet will convert '&amp;' internally, so we remove it from the path or else the node will not be found
-        path="$(echo "$path" | sed 's/&amp;/\&/g')"
+        #it seems xmlstarlet will convert '&amp;' internally, so remove it from the path or else the node will not be found
+        path="${path//&amp;/&}"
         full_path="$path"
         [[ "$path" == ./* ]] && full_path="$ROMS_DIR/$system/$path"
         [[ -f "$full_path" ]] && continue
