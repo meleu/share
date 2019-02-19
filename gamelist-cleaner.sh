@@ -201,9 +201,9 @@ for file in $gamelist_files; do
       original_gamelist="$backup_gamelist"
     fi
     
-    # use a temp file to convert "&" to "&amp: on the whole gamelist.xml even if the file has both "&" and "&amp;"
+    # use a temp file to convert &#39; to single quotes and "&" to "&amp: on the whole gamelist.xml even if the file has both "&" and "&amp;"
     temp_gamelist="/tmp/gamelist-$system.xml"
-    sed 's/\&/&amp;/g; s/;amp;/;/g' "$original_gamelist" > "$temp_gamelist"
+    sed "s/\&/&amp;/g; s/;amp;/;/g; s/&amp;#39;/'/g" "$original_gamelist" > "$temp_gamelist"
     original_gamelist=$(readlink -e "$temp_gamelist")
     cat "$original_gamelist" > "$clean_gamelist"
 
