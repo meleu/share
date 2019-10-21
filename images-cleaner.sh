@@ -23,6 +23,8 @@
 REPLACE_GAMELIST=false
 GAMELISTS_DIR="$HOME/.emulationstation/gamelists"
 IMAGES_DIR="$HOME/.emulationstation/downloaded_images"
+SYSTEM=
+SYSTEM_DIR=
 TEST_ONLY=false
 SUMMMARY_ONLY=false
 IMAGES_DELETED=0
@@ -45,7 +47,7 @@ readonly EXAMPLE="Examples:
   Test only:    $0 -t
   Summary only: $0 -s
   Gamelist dir: $0 -g /home/pi/RetroPie/roms
-  Images dir:   $0 -i /home/pi/./emulationstation/downloaded_images
+  Images dir:   $0 -i /home/pi/.emulationstation/downloaded_images
 "
 
 readonly HELP="
@@ -69,10 +71,13 @@ The OPTIONS are:
 -i|--images DIR     specifies the IMAGEs directory. Default:
                     $IMAGES_DIR
 
--g|--gamelist DIR   specifies the gamelist directory.  Default:
+-g|--gamelist DIR   specifies the gamelist directory. Default:
                     $GAMELISTS_DIR
+
+-y|--system SYSTEM  explicitly says which system's gamelist.xml you
+                    want to clean.
                     
--s|--summary        Only print a summary when done.
+-s|--summary        only print a summary when done.
 "
 
 function update_script() {
@@ -105,10 +110,61 @@ function update_script() {
 function print_summary() {
     echo
     echo "Summary of work:"
+    [[ "$TEST_ONLY" == true ]] && echo " - TEST ONLY, NO DELETIONS"
     echo " - Systems checked: $SYSTEMS_CHECKED"
-    [[ "$TEST_ONLY" == true ]] && echo " ---- TEST ONLY, NO DELETIONS ----"
     echo " - Images deleted:  $IMAGES_DELETED"
     echo " - Space freed:     $IMAGES_FILESIZE"
+}
+
+
+function images_loop() {
+    sys="$1"
+
+    if [[ -n "$SYSTEM_DIR" ]]; then
+        images_directory="$IMAGES_DIR"
+        gamelist_directory="$GAMELISTS_DIR"
+    else
+        images_directory="$IMAGES_DIR/$sys"
+        gamelist_directory="$GAMELISTS_DIR/$sys"
+    fi
+
+    # Loop over all the images in the system
+    for file in "$images_directory"/*
+        do
+        # XML Encode the & symbol
+        cfile=`echo $file | sed s/\&/\&amp\;/g`
+        
+        # Get just the filename and extension, we don't care about the path really, and, it might not be there.
+        cfile=$(basename "$cfile")
+        file_size=$(stat -c%s "$file")
+        
+        # If no gamelist is found, could be user supplied bad root gamelist folder
+        if [[ ! -s "$gamelist_directory/gamelist.xml" ]]; then
+            echo "ERROR: Could not find gamelist for system '$sys' at location \"$gamelist_directory\"" >&2
+            echo "Try to explicitly give its directory with '--gamelist' option." >&2
+            break
+        fi
+        
+        # Check for the image in the gamelist, grep return code 0 if found, 1 if not, 2 if error
+        grep_result=$(grep -q -F "$cfile" $gamelist_directory/gamelist.xml)
+        grep_rc=$?
+        
+        # Another check, being certain the gamelist was found
+        if [ "$grep_rc" == "2" ] ; then
+            echo "ERROR: Unable to access gamelist for system $sys at location \"$gamelist_directory\"" >&2
+            echo "ERROR: File was: $cfile" >&2
+            break
+        fi
+        
+        # If the image filename was NOT found in the system's gamelist, delete it
+        if [[ "$grep_rc" == "1" ]]; then
+            ((++IMAGES_DELETED))
+            IMAGES_FILESIZE=$((IMAGES_FILESIZE + file_size))
+            
+            [[ "$SUMMMARY_ONLY" == false ]] && echo "Deleting: $file"
+            [[ "$TEST_ONLY" == false ]] && rm "$file"
+        fi
+    done
 }
 
 # Get all the user passed in arguments
@@ -129,11 +185,21 @@ while [[ $# -gt 0 ]]; do
             shift
             IMAGES_DIR="$1"
             ;;
+        -y|--system)
+            shift
+            SYSTEM="$1"
+            SYSTEM_DIR="$HOME/RetroPie/roms/$SYSTEM"
+            if [[ ! -d "$SYSTEM_DIR" ]]; then
+                echo "ERROR: Looks like \"$SYSTEM\" is not a valid console (directory '$SYSTEM_DIR' not found)."
+                echo "Please enter a valid system."
+                exit 1
+            fi
+            ;;
         -t|--test)
             TEST_ONLY=true
             echo " ==TESTING MODE=="
             ;;
-        -s|summary)
+        -s|--summary)
             SUMMMARY_ONLY=true
             ;;
         *)
@@ -145,52 +211,23 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-# Loop over all systems in the images folder
-for sys in $IMAGES_DIR/*
-    do    
-    # Extract just the basename
-    sys=$(basename "$sys")
-    
-    [[ "$SUMMMARY_ONLY" == false ]] && echo
-    [[ "$SUMMMARY_ONLY" == false ]] && echo "Working on system: $sys"
-    ((++SYSTEMS_CHECKED))
-    
-    # Loop over all the images in the system
-    for file in $IMAGES_DIR/$sys/*
-        do
-        # XML Encode the & symbol
-        cfile=`echo $file | sed s/\&/\&amp\;/g`
+if [[ -n $SYSTEM ]]; then
+    images_loop "$SYSTEM"
+else
+    # Loop over all systems in the images folder
+    for sys in $IMAGES_DIR/*
+        do    
+        [[ -d "$sys" ]] || continue
+
+        # Extract just the basename
+        sys=$(basename "$sys")
         
-        # Get just the filename and extension, we don't care about the path really, and, it might not be there.
-        cfile=$(basename "$cfile")
-        file_size=$(stat -c%s "$file")
+        echo
+        [[ "$SUMMMARY_ONLY" == false ]] && echo "Working on system: $sys"
+        ((++SYSTEMS_CHECKED))
         
-        # If no gamelist is found, could be user supplied bad root gamelist folder
-        if [[ ! -s "$GAMELISTS_DIR/$sys/gamelist.xml" ]]; then
-            echo "ERROR: Could not find gamelist for system $sys at location \"$GAMELISTS_DIR\"" >&2
-            break
-        fi
-        
-        # Check for the image in the gamelist, grep return code 0 if found, 1 if not, 2 if error
-        grep_result=$(grep -q -F "$cfile" $GAMELISTS_DIR/$sys/gamelist.xml)
-        grep_rc=$?
-        
-        # Another check, being certain the gamelist was found
-        if [ "$grep_rc" == "2" ] ; then
-            echo "ERROR: Unable to access gamelist for system $sys at location \"$GAMELISTS_DIR\"" >&2
-            echo "ERROR: File was: $cfile" >&2
-            break
-        fi
-        
-        # If the image filename was NOT found in the system's gamelist, delete it
-        if [[ "$grep_rc" == "1" ]]; then
-            ((++IMAGES_DELETED))
-            IMAGES_FILESIZE=$((IMAGES_FILESIZE + file_size))
-            
-            [[ "$SUMMMARY_ONLY" == false ]] && echo "Deleting: $file"
-            [[ "$TEST_ONLY" == false ]] && rm "$file"
-        fi
+        images_loop "$sys"
     done
-done
+fi
 
 print_summary
